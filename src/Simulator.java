@@ -117,12 +117,12 @@ public class Simulator {
 		return String.format("%02X %02X %02X %02X", byte0, byte1, byte2, byte3);
 	}
 		
-	private String getAddressAsString(int byte0, int byte1, int byte2) {
+	private String getMemoryAddressAsString(int byte0, int byte1, int byte2) {
 		return String.format("%02X %02X %02X", byte0, byte1, byte2);
 	}	
 	
 	public String getMemoryAddressAsString(int word) {
-		return getAddressAsString(0, (word * 4) / 256, (word * 4) % 256 );	
+		return getMemoryAddressAsString(0, (word * 4) / 256, (word * 4) % 256 );	
 	}
 		
 	public void nextStep() {
