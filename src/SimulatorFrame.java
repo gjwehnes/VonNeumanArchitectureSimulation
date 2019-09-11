@@ -38,17 +38,22 @@ public class SimulatorFrame extends JFrame {
 	private String instructionRegister = "";
 	private String accumulator = "";
 	private String programCounter = "";
+	private String output = "";
+	private String input = "";
 	
 	private JPanel contentPane;
-	private JTextField txtInstructionRegister;
-	private State state = State.FIRST_FETCH;
 	private boolean incorrectAnswer = false;
 	private boolean correctAnswer = false;
 	private JButton btnNext;
 	private JButton btnCheck;
-	private Simulator simulator = new Simulator("","00 00 00 00","00 00 00");
+	private Simulator simulator;
+	
+	private JTextField txtInstructionRegister;
 	private JTextField txtProgramCounter;
 	private JTextField txtAccumulator;
+	private JTextField txtInput;
+	private JTextField txtOutput;
+
 	private JTable table;
 	private JLabel lblCorrect;
 	private JLabel lblIncorrect;
@@ -66,9 +71,7 @@ public class SimulatorFrame extends JFrame {
 	private JTextField[] memory;
 	JTextArea txtCurrentStepDescription;
 	private JLabel lblInput;
-	private JTextField txtInput;
 	private JLabel lblOutput;
-	private JTextField txtOutput;
 	private JButton btnInstructionSet;
 	
 	public interface Reorderable {
@@ -206,6 +209,9 @@ public class SimulatorFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public SimulatorFrame() {
+		
+		simulator = new Simulator();
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 778, 663);
 		contentPane = new JPanel();
@@ -217,7 +223,7 @@ public class SimulatorFrame extends JFrame {
         txtInstructionRegister.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtInstructionRegister.setBounds(124, 112, 128, 27);
         contentPane.add(txtInstructionRegister);
-        txtInstructionRegister.setText("-- -- -- --");
+        txtInstructionRegister.setText(simulator.getInstructionRegister());
         txtInstructionRegister.setColumns(10);
         
         btnCheck = new JButton("Check");
@@ -255,7 +261,7 @@ public class SimulatorFrame extends JFrame {
         txtAccumulator.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtAccumulator.setColumns(10);
         txtAccumulator.setBounds(124, 307, 128, 27);
-        txtAccumulator.setText("-- -- -- --");
+        txtAccumulator.setText(simulator.getAccumulator());
         contentPane.add(txtAccumulator);
         
         lblAccumulator = new JLabel(" Acc.");
@@ -385,7 +391,7 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(btnInstructionSet);
         
         txtInput = new JTextField();
-        txtInput.setText("00 00 00 00");
+        txtInput.setText(simulator.getInput());
         txtInput.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtInput.setColumns(10);
         txtInput.setBounds(600, 431, 128, 27);
@@ -400,7 +406,7 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(lblInput);
         
         txtOutput = new JTextField();
-        txtOutput.setText("00 00 00 00");
+        txtOutput.setText(simulator.getOutput());
         txtOutput.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtOutput.setColumns(10);
         txtOutput.setBounds(600, 498, 128, 27);
@@ -428,6 +434,8 @@ public class SimulatorFrame extends JFrame {
         JLabel lblBackground = new JLabel("New label");
         lblBackground.setIcon(new ImageIcon("C:\\Users\\gjwehnes\\Desktop\\von-neuman-architecture.png"));
         lblBackground.setBounds(5, 5, 960, 711);
+        
+        simulator.moveNextStep();
 		
 	}
 	
@@ -499,8 +507,7 @@ public class SimulatorFrame extends JFrame {
 	private void transition(Action action) {
 		if (action == Action.NEXT) {
 			if (correctAnswer) {
-				this.state = this.state.next();
-				simulator.setState(this.state);
+				simulator.moveNextStep();
 				incorrectAnswer = false;
 				correctAnswer = false;
 			}
@@ -514,68 +521,18 @@ public class SimulatorFrame extends JFrame {
 		this.instructionRegister = this.txtInstructionRegister.getText();
 		this.programCounter = this.txtProgramCounter.getText();
 		this.accumulator = this.txtAccumulator.getText();
+		this.output = this.txtOutput.getText();
+		this.input = this.txtInput.getText();
 	}
 	
 	private void getInputCorrect() {
 
-		//
-		//Instruction	Value	Description
-		//READ	40	xx	xx	xx	Read value from address xxxxxx into accumulator
-		//WRITE	41	xx	xx	xx	Write value in accumulator to address xxxxxx
-		//ADD	80	xx	xx	xx	Add value at address xxxxxx to accumulator
-		//SUB	81	xx	xx	xx	Subtract value at address xxxxxx to accumulator
-		//MULT	82	xx	xx	xx	Multiply accumulator value by value at address xxxxxx
-		//DIV	83	xx	xx	xx	Divide accumulator value by value at address xxxxxx. Integer division, no remainder!
-		//INPUT	60	xx	xx	xx	Input value from input device into address xxxxxx
-		//OUTPUT	61	xx	xx	xx	Output value at address xxxxxx to output device
-		//STOP	FF	FF	FF	FF	
-		
-		//Address	Instruction / value    
-		//				+1	+2	+3
-		//00 00 00	40	00	00	10
-		//00 00 04	80	00	00	14
-		//00 00 08	41	00	00	18
-		//00 00 0C	FF	FF	FF	FF	
-		//00 00 10	00	00	AB	CD
-		//00 00 14	11	11	11	11
-		//00 00 18	00	00	00	00			
-		switch(this.state) {
-			case FIRST_FETCH:
-				correctAnswer = (this.instructionRegister.equalsIgnoreCase(simulator.getMemoryWordAsString(0)));
-				break;
-			case FIRST_EXECUTE:
-				correctAnswer = (this.accumulator.equalsIgnoreCase(simulator.getAccumulator()) 
-						&& this.programCounter.equalsIgnoreCase(simulator.getMemoryAddressAsString(1)) );
-				break;
-			case SECOND_FETCH:
-				correctAnswer = (this.instructionRegister.equalsIgnoreCase(simulator.getMemoryWordAsString(1)));
-				break;
-			case SECOND_EXECUTE:
-				correctAnswer = (this.accumulator.equalsIgnoreCase(simulator.getAccumulator()) 
-						&& this.programCounter.equalsIgnoreCase(simulator.getMemoryAddressAsString(2)) );
-				break;
-			case THIRD_FETCH:
-				correctAnswer = (this.instructionRegister.equalsIgnoreCase(simulator.getMemoryWordAsString(2)));
-				break;
-			case THIRD_EXECUTE:
-				correctAnswer = (this.accumulator.equalsIgnoreCase(simulator.getAccumulator()) 
-						&& this.memory[6].getText().equalsIgnoreCase(simulator.getOutput())
-						&& this.programCounter.equalsIgnoreCase(simulator.getMemoryAddressAsString(3)) );
-				break;
-			case FOURTH_FETCH:
-				correctAnswer = (this.instructionRegister.equalsIgnoreCase(simulator.getMemoryWordAsString(3)));
-				break;
-			case FOURTH_EXECUTE:
-				correctAnswer = (this.accumulator.equalsIgnoreCase(simulator.getAccumulator()) 
-						&& this.memory[6].getText().equalsIgnoreCase(simulator.getOutput())
-						&& this.programCounter.equalsIgnoreCase(simulator.getMemoryAddressAsString(3)) );
-				break;
-			case COMPLETION:
-				break;
-		default:
-			break;
-		}
-		
+		correctAnswer = this.accumulator.equalsIgnoreCase(simulator.getAccumulator());
+		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getProgramCounter());
+		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getAccumulator());
+		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getInput());
+		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getOutput());
+
 		incorrectAnswer = ! correctAnswer;
 	}
 	
@@ -584,14 +541,14 @@ public class SimulatorFrame extends JFrame {
 		this.lblCorrect.setVisible(correctAnswer);
 		this.lblIncorrect.setVisible(incorrectAnswer);
 		
-		this.btnCheck.setEnabled(! correctAnswer && this.state != State.COMPLETION);
-		this.btnNext.setEnabled(correctAnswer && this.state != State.COMPLETION);
+		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
+		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
 		
-		this.lblCurrentStep.setText(this.state.toString());
-		this.txtCurrentStepDescription.setText(this.state.getDescription());		
+		this.lblCurrentStep.setText(simulator.getState().toString());
+		this.txtCurrentStepDescription.setText(simulator.getState().getDescription());				
 		
-		
-		int currentAddress = this.state.ordinal() / 2;
+		//TODO
+		int currentAddress = 0;
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
 		
 	}
