@@ -35,11 +35,6 @@ import javax.swing.UIManager;
 public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_CELL_ROW_HEIGHT = 30;
-	private String instructionRegister = "";
-	private String accumulator = "";
-	private String programCounter = "";
-	private String output = "";
-	private String input = "";
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -197,7 +192,6 @@ public class SimulatorFrame extends JFrame {
 				try {
 					SimulatorFrame frame = new SimulatorFrame();
 					frame.setVisible(true);
-					frame.setControls();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -246,7 +240,7 @@ public class SimulatorFrame extends JFrame {
         txtProgramCounter.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtProgramCounter.setColumns(10);
         txtProgramCounter.setBounds(124, 175, 128, 27);
-        txtProgramCounter.setText(this.simulator.getProgramCounter());
+        txtProgramCounter.setText(this.simulator.getProgramCounterAsString());
         contentPane.add(txtProgramCounter);
         
         lblProgramCounter = new JLabel(" PC");
@@ -436,6 +430,7 @@ public class SimulatorFrame extends JFrame {
         lblBackground.setBounds(5, 5, 960, 711);
         
         simulator.moveNextStep();
+        setControls();
 		
 	}
 	
@@ -516,23 +511,19 @@ public class SimulatorFrame extends JFrame {
 		}
 		
 	}
-
-	private void readControls() {
-		this.instructionRegister = this.txtInstructionRegister.getText();
-		this.programCounter = this.txtProgramCounter.getText();
-		this.accumulator = this.txtAccumulator.getText();
-		this.output = this.txtOutput.getText();
-		this.input = this.txtInput.getText();
-	}
 	
 	private void getInputCorrect() {
 
-		correctAnswer = this.accumulator.equalsIgnoreCase(simulator.getAccumulator());
-		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getProgramCounter());
-		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getAccumulator());
-		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getInput());
-		correctAnswer &= this.programCounter.equalsIgnoreCase(simulator.getOutput());
+		correctAnswer = this.txtInstructionRegister.getText().equalsIgnoreCase(simulator.getInstructionRegister());
+		correctAnswer &= this.txtProgramCounter.getText().equalsIgnoreCase(simulator.getProgramCounterAsString());
+		correctAnswer &= this.txtAccumulator.getText().equalsIgnoreCase(simulator.getAccumulator());
+		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(simulator.getInput());
+		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(simulator.getOutput());
 
+		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
+			correctAnswer &= this.memory[i].getText().equalsIgnoreCase(simulator.getMemoryWordAsString(i));
+		}
+		
 		incorrectAnswer = ! correctAnswer;
 	}
 	
@@ -547,21 +538,22 @@ public class SimulatorFrame extends JFrame {
 		this.lblCurrentStep.setText(simulator.getState().toString());
 		this.txtCurrentStepDescription.setText(simulator.getState().getDescription());				
 		
-		//TODO
-		int currentAddress = 0;
+		int currentAddress = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
+		//TODO: should the arrow even be visible still?
+		this.lblArrow.setVisible(false);
+		
+		this.contentPane.setEnabled(simulator.getState() != State.COMPLETE);
 		
 	}
 		
 	protected void btnNext_mouseClicked(MouseEvent arg0) {
-		readControls();
 		transition(Action.NEXT);
 		setControls();
 	}
 
 	
 	protected void btnCheck_mouseClicked(MouseEvent e) {
-		readControls();
 		transition(Action.CHECK);
 		setControls();
 	}

@@ -1,14 +1,14 @@
 public class Simulator {
 
-	private String instructionRegister = "";
-	private String accumulator = "";
+	private long instructionRegister = 0;
+	private long accumulator = 0;
 	private int programCounter = 0;
-	private String input = "";
-	private String output = "";
+	private long input = 0;
+	private long output = 0;
 			
 	private State state = State.START;
-	private final int BYTES_PER_WORD = 4;
-	private final int WORDS_IN_PROGRAM = 7;
+	public final int BYTES_PER_WORD = 4;
+	public final int WORDS_IN_PROGRAM = 7;
 	private long valueOne = 0x0000ABCD;
 	private long valueTwo = 0x11111111;
 	private long result = 0;
@@ -20,11 +20,11 @@ public class Simulator {
 
 	public Simulator() {
 		super();
-		this.instructionRegister = "-- -- -- --";
-		this.accumulator = "-- -- -- --";
+		this.instructionRegister = 0;
+		this.accumulator = 0;
 		this.programCounter = 0;
-		this.input = "-- -- -- --";
-		this.output = "-- -- -- --";
+		this.input = 0;
+		this.output = 0;
 		
 		//randomize program - for now just a simple addition of two values
 		
@@ -54,23 +54,27 @@ public class Simulator {
 	}
 
 	public String getInstructionRegister() {
-		return instructionRegister;
+		return getMemoryWordAsString(instructionRegister);
 	}
 
-	public String getProgramCounter() {
+	public int getProgramCounter() {
+		return programCounter;
+	}
+	
+	public String getProgramCounterAsString() {
 		return getMemoryAddressAsString(programCounter);
 	}
 	
 	public String getAccumulator() {
-		return this.accumulator;
+		return getMemoryWordAsString(this.accumulator);
 	}
 
 	public String getInput() {
-		return this.input;
-	}
+		return getMemoryWordAsString(this.input);
+	} 
 	
 	public String getOutput() {
-		return this.output;
+		return getMemoryWordAsString(this.output);
 	}
 		
 	private String getMemoryWordAsString(long word) {
@@ -100,13 +104,39 @@ public class Simulator {
 	public void moveNextStep() {
 		if (state == State.START) {
 			state = State.AFTER_FETCH;
-			this.instructionRegister = this.getMemoryWordAsString(programCounter);
+			this.instructionRegister = memory[programCounter];
 			this.programCounter+=1;
 			
 		}		
 		else if (state == State.AFTER_FETCH) {
 			state = State.AFTER_EXECUTE;
-			programCounter+=1;
+			//instruction has executed...
+			int instruction = (int) (instructionRegister / (256 * 256 * 256));
+			long address = instructionRegister % 256;
+			switch(instruction) {
+				case 0x10:	//READ
+					accumulator = memory[(int) (address / 4)];
+					break;
+				case 0x11:	//WRITE
+					memory[(int) (address / 4)] = accumulator;
+					break;
+				case 0x20:	//add
+					accumulator += memory[(int) (address / 4)];
+					break;
+				case 0x21:	//subtract
+					accumulator -= memory[(int) (address / 4)];
+					break;
+				case 0x22:	//multiply
+					accumulator *= memory[(int) (address / 4)];
+					break;
+				case 0x23:	//multiply
+					accumulator /= memory[(int) (address / 4)];
+					break;
+				case 0x7F: //stop
+					state = State.COMPLETE;
+				default:	//UNKNOWN
+					
+			}
 		}
 		else if (state == State.AFTER_EXECUTE) {
 			if (false) {  //if current instruction is 'STOP'...
@@ -114,11 +144,8 @@ public class Simulator {
 			}
 			else {
 				state = State.AFTER_FETCH;
-				//update programCounter
-				//update instruction register
-				//update accumulator
-				//update input
-				//update output
+				this.instructionRegister = memory[programCounter];
+				this.programCounter+=1;
 			}
 	
 		}
