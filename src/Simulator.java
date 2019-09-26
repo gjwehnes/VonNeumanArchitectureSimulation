@@ -1,5 +1,27 @@
-public class Simulator {
+import java.util.Random;
 
+public class Simulator {
+	
+//	Instruction	Value	Description
+//	READ	10	xx	xx	xx	Read value from address xxxxxx into accumulator
+//	WRITE	11	xx	xx	xx	Write value in accumulator to address xxxxxx
+//	ADD	    20	xx	xx	xx	Add value at address xxxxxx to accumulator
+//	SUB		21	xx	xx	xx	Subtract value at address xxxxxx to accumulator
+//	MULT	22	xx	xx	xx	Multiply accumulator value by value at address xxxxxx
+//	DIV		23	xx	xx	xx	Divide accumulator value by value at address xxxxxx. Integer division, no remainder!
+//  DMULT	26 	yy  yy  yy  Multiply accumulator value by value yyyyyy
+//  DDIV	27 	yy  yy  yy  Divide accumulator value by value yyyyyy. Integer division, no remainder!
+//	INPUT	40	xx	xx	xx	Load value from input device into address xxxxxx
+//	OUTPUT	41	xx	xx	xx	Store value at address xxxxxx in output device
+//	JUMP	51	xx	xx	xx	Jump to address xxxxxx
+//	JUMPIF	52	xx	xx	xx	Jump to address xxxxxx if compare flag is TRUE
+//	AND		60	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
+//	OR		61	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
+//	NOT		62				Logical NOT accumulator value	
+//	XOR		63	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
+//  CLEAR	70	00	00	00	Set the accumulator to zero
+//	STOP	7F	FF	FF	FF	
+	
 	private long instructionRegister = 0;
 	private long accumulator = 0;
 	private int programCounter = 0;
@@ -7,18 +29,12 @@ public class Simulator {
 	private long output = 0;
 			
 	private State state = State.START;
-	public final int BYTES_PER_WORD = 4;
-	public final int WORDS_IN_PROGRAM = 7;
-	private long valueOne = 0x0000ABCD;
-	private long valueTwo = 0x11111111;
-	private long result = 0;
-	private String valueOneS;
-	private String valueTwoS;
-	private String resultS;
+	public int BYTES_PER_WORD = 4;
+	public int WORDS_IN_PROGRAM = 8;
 	
-	private long[] memory = new long[WORDS_IN_PROGRAM];
+	private long[] memory;
 
-	public Simulator() {
+	public Simulator(Mode mode) {
 		super();
 		this.instructionRegister = 0;
 		this.accumulator = 0;
@@ -26,22 +42,88 @@ public class Simulator {
 		this.input = 0;
 		this.output = 0;
 		
-		//randomize program - for now just a simple addition of two values
-		
-		valueOne = (long)(Math.random() * 256 * 256);
-		valueTwo = (long)(Math.random() * 256 * 256);
-		
-		result = valueOne + valueTwo;				
-		
-		memory[0] = 0x10000010;
-		memory[1] = 0x20000014;
-		memory[2] = 0x11000018;
-		memory[3] = 0x7F000000;
+		Random random = new Random(System.currentTimeMillis());
+				
+		if (mode == Mode.SIMPLE) {
+			//randomize program - for now just a simple addition of two values, of which one comes from the input
+			WORDS_IN_PROGRAM = 9;
+			memory = new long[WORDS_IN_PROGRAM];
+			
+			long valueOne = (long)(Math.random() * 256 * 256);
+			long valueTwo = (long)(Math.random() * 256 * 256);
+			
+			memory[0] = 0x4000001C;		//00	INPUT 	00 00 1C
+			memory[1] = 0x10000018;		//04	READ  	00 00 18
+			memory[2] = 0x2000001C;		//08	ADD   	00 00 1C
+			memory[3] = 0x11000020;		//0C	WRITE 	00 00 20
+			memory[4] = 0x41000020;		//10	OUTPUT	00 00 20	
+			memory[5] = 0x7FFFFFFF;		//14	STOP		
 
-		memory[4] = valueOne;
-		memory[5] = valueTwo;
-		memory[6] = 0x00000000;
-		
+			memory[6] = valueTwo;		//18	input value
+			memory[7] = 0x00000000;		//1C	value to add
+			memory[8] = 0x00000000;		//20	sum
+			
+			input = valueOne;
+			output = 0;
+						
+		}
+		else if (mode == Mode.INTERMEDIATE) {
+			WORDS_IN_PROGRAM = 10;
+			memory = new long[WORDS_IN_PROGRAM];
+			
+			long valueOne = (long)(Math.random() * 256 * 256);
+			long valueTwo = (long)(Math.random() * 256 * 256);
+			long valueThree = (long)(Math.random() * 16);
+			
+			memory[0] = 0x4000001C;				//00	INPUT 	00 00 1C
+			memory[1] = 0x1000001C;				//04	READ  	00 00 1C
+			if ((int)(Math.random() * 2) == 0) {
+				memory[2] = 0x20000020;			//08	ADD   	00 00 20
+			}
+			else {
+				memory[2] = 0x20000020;			//08	SUB   	00 00 20
+			}
+			if ((int)(Math.random() * 2) == 0) {
+				memory[3] = 0x22000024;			//0C	MULT   	00 00 24
+			}
+			else {
+				memory[3] = 0x23000024;			//0C	DIV   	00 00 24
+			}
+			memory[4] = 0x1100001C;				//10	WRITE 	00 00 1C
+			memory[5] = 0x4100001C;				//14	OUTPUT	00 00 1C	
+			memory[6] = 0x7FFFFFFF;				//18	STOP		
+
+			memory[7] = 0x00000000;				//1C	input value
+			memory[8] = valueTwo;				//20	value to add / subtract
+			memory[9] = valueThree;				//24	value to multiply / divide
+			
+			input = valueOne;
+			output = 0;
+						
+		}
+		else if (mode == Mode.DEMO) {
+
+			WORDS_IN_PROGRAM = 12;
+			memory = new long[WORDS_IN_PROGRAM];
+						
+			memory[0] = 0x40000020;		//00	INPUT 	00 00 1C
+			memory[1] = 0x10000020;		//04	READ  	00 00 18
+			memory[2] = 0x21000024;		//08	SUB   	00 00 1C
+			memory[3] = 0x22000028;		//0C	MULT   	00 00 1C
+			memory[4] = 0x2300002C;		//10	DIV 	00 00 20
+			memory[5] = 0x41000020;		//14	WRITE	00 00 20
+			memory[6] = 0x41000020;		//18	OUTPUT	
+			memory[7] = 0x7FFFFFFF;		//1C	STOP		
+
+			memory[8] = 0x00000000;		//20	input value
+			memory[9] = 0x00000020;		//24	value to subtract
+			memory[10] = 0x00000005;	//28	value to multiply
+			memory[11] = 0x00000009;	//2C	value to divide
+			
+			input = 0x48;
+			output = 0;
+						
+		}
 		
 	}
 
@@ -132,6 +214,12 @@ public class Simulator {
 				case 0x23:	//multiply
 					accumulator /= memory[(int) (address / 4)];
 					break;
+				case 0x40:	//input
+					memory[(int) (address / 4)] = input;
+					break;					
+				case 0x41:  //output
+					output = memory[(int) (address / 4)];
+					break;
 				case 0x7F: //stop
 					state = State.COMPLETE;
 				default:	//UNKNOWN
@@ -149,6 +237,22 @@ public class Simulator {
 			}
 	
 		}
+	}
+	
+	public void printCurrentState() {
+
+		System.out.println(String.format("%s\t%s", "CIR     ", getMemoryWordAsString(this.instructionRegister)));
+		System.out.println(String.format("%s\t%s", "PC      ", getMemoryWordAsString((long)this.programCounter * 4)));
+		System.out.println(String.format("%s\t%s", "ACC     ", getMemoryWordAsString(this.accumulator)));
+		System.out.println();
+		System.out.println(String.format("%s\t%s", "ADDRESS  ", "CONTENTS"));
+		for (int i = 0; i < WORDS_IN_PROGRAM; i++) {
+			System.out.println(String.format("%s\t%s", getMemoryAddressAsString(i), getMemoryWordAsString(i)));
+		}
+		System.out.println();
+		System.out.println(String.format("%s\t%s", "IN      ", getMemoryWordAsString(this.input)));
+		System.out.println(String.format("%s\t%s", "OUT     ", getMemoryWordAsString(this.output)));
+		
 	}
 	
 }

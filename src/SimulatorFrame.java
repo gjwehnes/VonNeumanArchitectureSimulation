@@ -19,6 +19,7 @@ import javax.swing.JComponent;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Random;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -34,11 +35,14 @@ import javax.swing.UIManager;
 
 public class SimulatorFrame extends JFrame {
 
-	private final int MEMORY_CELL_ROW_HEIGHT = 30;
+	private final int MEMORY_GRID_TOP = 60;
+	private final int MEMORY_CELL_ROW_HEIGHT = 26;
+	private final static Mode mode = Mode.DEMO;
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
-	private boolean correctAnswer = false;
+	private boolean correctAnswer = true;
+	private String verhoeffCode;
 	private JButton btnNext;
 	private JButton btnCheck;
 	private Simulator simulator;
@@ -50,6 +54,7 @@ public class SimulatorFrame extends JFrame {
 	private JTextField txtOutput;
 
 	private JTable table;
+	private JTextField txtCompletionCode;
 	private JLabel lblCorrect;
 	private JLabel lblIncorrect;
 	private JLabel lblCurrentStep;
@@ -73,115 +78,6 @@ public class SimulatorFrame extends JFrame {
 		   public void reorder(int fromIndex, int toIndex);
 		}
 	
-	class MyTableModel extends AbstractTableModel implements Reorderable {
-
-		String[] columnNames = {"Address","+0", "+1", "+2", "+3"};
-		
-		Object[][] data = {
-			};
-		
-	    public void setData(Object[][] data) {
-			this.data = data;
-		}
-
-		public int getColumnCount() {
-	        return columnNames.length;
-	    }
-	    
-	    public int getRowCount() {
-	        return data.length;
-	    }
-
-	    public String getColumnName(int col) {
-	        return columnNames[col];
-	    }
-
-	    public Object getValueAt(int row, int col) {
-	        return data[row][col];
-	    }
-
-	    public Class getColumnClass(int c) {
-	        return getValueAt(0, c).getClass();
-	    }
-	    
-	    public boolean isCellEditable(int row, int col) {
-	        //Note that the data/cell address is constant,
-	        //no matter where the cell appears onscreen.
-         return true;
-	    }
-	    
-	    public void setValueAt(Object value, int row, int col) {
-	        data[row][col] = value;
-	        fireTableCellUpdated(row, col);
-	        tableCellUpdated(row, col);
-	    }
-
-		@Override
-		public void reorder(int fromIndex, int toIndex) {
-			// TODO Auto-generated method stub
-			System.out.println("reorder");
-		}
-	}
-
-	class TableRowTransferHandler extends TransferHandler {
-		   private final DataFlavor localObjectFlavor = new ActivationDataFlavor(Integer.class, "application/x-java-Integer;class=java.lang.Integer", "Integer Row Index");
-		   private JTable           table             = null;
-
-		   public TableRowTransferHandler(JTable table) {
-		      this.table = table;
-		   }
-
-		   @Override
-		   protected Transferable createTransferable(JComponent c) {
-		      assert (c == table);
-		      return new DataHandler(new Integer(table.getSelectedRow()), localObjectFlavor.getMimeType());
-		   }
-
-		   @Override
-		   public boolean canImport(TransferHandler.TransferSupport info) {
-		      boolean b = info.getComponent() == table && info.isDrop() && info.isDataFlavorSupported(localObjectFlavor);
-		      table.setCursor(b ? DragSource.DefaultMoveDrop : DragSource.DefaultMoveNoDrop);
-		      return b;
-		   }
-
-		   @Override
-		   public int getSourceActions(JComponent c) {
-		      return TransferHandler.COPY_OR_MOVE;
-		   }
-
-		   @Override
-		   public boolean importData(TransferHandler.TransferSupport info) {
-		      JTable target = (JTable) info.getComponent();
-		      JTable.DropLocation dl = (JTable.DropLocation) info.getDropLocation();
-		      int index = dl.getRow();
-		      int max = table.getModel().getRowCount();
-		      if (index < 0 || index > max)
-		         index = max;
-		      target.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		      try {
-		         Integer rowFrom = (Integer) info.getTransferable().getTransferData(localObjectFlavor);
-		         if (rowFrom != -1 && rowFrom != index) {
-		            ((Reorderable)table.getModel()).reorder(rowFrom, index);
-		            if (index > rowFrom)
-		               index--;
-		            target.getSelectionModel().addSelectionInterval(index, index);
-		            return true;
-		         }
-		      } catch (Exception e) {
-		         e.printStackTrace();
-		      }
-		      return false;
-		   }
-
-		   @Override
-		   protected void exportDone(JComponent c, Transferable t, int act) {
-		      if ((act == TransferHandler.MOVE) || (act == TransferHandler.NONE)) {
-		         table.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		      }
-		   }
-
-		}
-	
 
 	/**
 	 * Launch the application.
@@ -189,8 +85,8 @@ public class SimulatorFrame extends JFrame {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				try {
-					SimulatorFrame frame = new SimulatorFrame();
+				try {					
+					SimulatorFrame frame = new SimulatorFrame(mode);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -202,9 +98,21 @@ public class SimulatorFrame extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public SimulatorFrame() {
+	public SimulatorFrame(Mode mode) {
 		
-		simulator = new Simulator();
+		
+		Random random = new Random(System.currentTimeMillis());
+//		VerhoeffAlgorithm verhoeff = new VerhoeffAlgorithm();
+		int randomInt =  (int)(random.nextDouble() * 1000000);
+//		String verhoeffDigit = verhoeff.generateVerhoeff(Integer.toString(randomInt));
+//		this.verhoeffCode = Integer.toString(randomInt) + verhoeffDigit;
+		//mod(98 - mod(number * 100, 97), 97)
+		long modulus = (randomInt * 100) % 97;
+		long checkSum = (98 - ((randomInt * 100) % 97) );
+		String passCode = Long.toString(randomInt) + Long.toString(checkSum);
+		System.out.println(Math.floorMod(Long.parseLong(passCode),97));
+		simulator = new Simulator(mode);
+		this.setTitle("Von Neumann Simulator: MODE = " + mode.toString());
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 778, 663);
@@ -311,7 +219,7 @@ public class SimulatorFrame extends JFrame {
         lblAddress.setText("Address");
         lblAddress.setOpaque(true);
         lblAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblAddress.setBounds(470, 66, 128, 27);
+        lblAddress.setBounds(470, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblAddress);
         
         lblContent = new JLabel();
@@ -319,7 +227,7 @@ public class SimulatorFrame extends JFrame {
         lblContent.setText("   +1 +2 +3");
         lblContent.setOpaque(true);
         lblContent.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblContent.setBounds(608, 66, 128, 27);
+        lblContent.setBounds(608, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblContent);
         //        contentPane.add(lblBackground);
                 
@@ -332,7 +240,17 @@ public class SimulatorFrame extends JFrame {
         lblMemory.setBackground(Color.DARK_GRAY);
         lblMemory.setBounds(453, 11, 298, 391);
         contentPane.add(lblMemory);
-        
+
+        txtCompletionCode = new JTextField(passCode);
+        txtCompletionCode.setOpaque(true);
+        txtCompletionCode.setHorizontalAlignment(SwingConstants.CENTER);
+        txtCompletionCode.setFont(new Font("Tahoma", Font.BOLD, 16));
+        txtCompletionCode.setBackground(new Color (0, 102, 255));
+        txtCompletionCode.setForeground(Color.WHITE);
+        txtCompletionCode.setBounds(186, 506, 141, 49);
+        txtCompletionCode.setEditable(false);
+        contentPane.add(txtCompletionCode);
+
         lblCorrect = new JLabel("Correct!");
         lblCorrect.setOpaque(true);
         lblCorrect.setHorizontalAlignment(SwingConstants.CENTER);
@@ -413,15 +331,6 @@ public class SimulatorFrame extends JFrame {
         lblOutput.setBackground(Color.LIGHT_GRAY);
         lblOutput.setBounds(556, 480, 195, 58);
         contentPane.add(lblOutput);
-        
-//		table = new JTable();
-//		table.setFont(new Font("Courier", Font.PLAIN, 20));
-//		table.setModel(new MyTableModel());
-//		table.setDragEnabled(true);
-//		table.setDropMode(DropMode.INSERT_ROWS);
-//		table.setBounds(531, 103, 400, 397);
-//		initializeTable();
-//		contentPane.add(table);
 		
         initializeGrid();
         
@@ -429,20 +338,20 @@ public class SimulatorFrame extends JFrame {
         lblBackground.setIcon(new ImageIcon("C:\\Users\\gjwehnes\\Desktop\\von-neuman-architecture.png"));
         lblBackground.setBounds(5, 5, 960, 711);
         
-        simulator.moveNextStep();
+//        simulator.moveNextStep();
         setControls();
 		
 	}
 	
 	private void initializeGrid() {
 
-		memory = new JTextField[7];
-		JTextField[] address = new JTextField[7];
+		memory = new JTextField[simulator.WORDS_IN_PROGRAM];
+		JTextField[] address = new JTextField[simulator.WORDS_IN_PROGRAM];
 		
 		for (int row = 0; row < address.length; row++) {
 			address[row] = new JTextField();
 			address[row].setFont(new Font("Courier New", Font.PLAIN, 16));
-			address[row].setBounds(lblAddress.getX(), 96 + row * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+			address[row].setBounds(lblAddress.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
 			address[row].setText(simulator.getMemoryAddressAsString(row));				
 			address[row].setEditable(false);
 	        contentPane.add(address[row]);
@@ -452,7 +361,7 @@ public class SimulatorFrame extends JFrame {
 		for (int row = 0; row < memory.length; row++) {
 			memory[row] = new JTextField();
 			memory[row].setFont(new Font("Courier New", Font.PLAIN, 16));
-			memory[row].setBounds(lblContent.getX(), 96 + row * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+			memory[row].setBounds(lblContent.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
 	        memory[row].setText(simulator.getMemoryWordAsString(row));
 	        contentPane.add(memory[row]);
 	        contentPane.setComponentZOrder(memory[row], 0);
@@ -470,14 +379,8 @@ public class SimulatorFrame extends JFrame {
 		data[0][3] = "+2";
 		data[0][4] = "+3";
 		
-		data[1][0] = "00 00 00 00";	data[1][1] = "40"; data[1][2] = "00"; data[1][3] = "00"; data[1][4] = "80";
+		data[1][0] = "00 00 00 00";	data[1][1] = "40"; data[1][2] = "00"; data[1][3] = "00"; data[1][4] = "80";		
 		
-		MyTableModel tableModel = new MyTableModel();
-		tableModel.setData(data);		
-		table.setModel(tableModel);
-		
-		System.out.println(tableModel.getColumnCount());
-
 		TableColumn col0 = table.getColumnModel().getColumn(0);
 		col0.setPreferredWidth(200);
 
@@ -529,8 +432,9 @@ public class SimulatorFrame extends JFrame {
 	
 	private void setControls() {
 		
-		this.lblCorrect.setVisible(correctAnswer);
-		this.lblIncorrect.setVisible(incorrectAnswer);
+		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && mode != Mode.DEMO);
+		this.lblIncorrect.setVisible(incorrectAnswer && mode != Mode.DEMO);
+		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE);
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
@@ -540,9 +444,13 @@ public class SimulatorFrame extends JFrame {
 		
 		int currentAddress = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
-		//TODO: should the arrow even be visible still?
-		this.lblArrow.setVisible(false);
+
+		this.lblArrow.setVisible(mode == Mode.DEMO);
+		this.lblCurrentStep.setVisible(mode != Mode.DEMO);
+		this.txtCurrentStepDescription.setVisible(mode != Mode.DEMO);
 		
+	
+	
 		this.contentPane.setEnabled(simulator.getState() != State.COMPLETE);
 		
 	}
@@ -554,6 +462,7 @@ public class SimulatorFrame extends JFrame {
 
 	
 	protected void btnCheck_mouseClicked(MouseEvent e) {
+		simulator.printCurrentState();
 		transition(Action.CHECK);
 		setControls();
 	}
@@ -568,9 +477,4 @@ public class SimulatorFrame extends JFrame {
 		is = null;
 	}	
 	
-	private void tableCellUpdated(int row, int col) {
-		System.out.println(String.format("%d,%d", row,col));
-//		buildFeedback();
-	}
-
 }
