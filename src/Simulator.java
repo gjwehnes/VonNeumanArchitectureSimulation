@@ -151,12 +151,20 @@ public class Simulator {
 		return getMemoryWordAsString(this.accumulator);
 	}
 
+	public String getInputBase10() {
+		return String.format("%d", this.input);
+	}
+	
 	public String getInput() {
 		return getMemoryWordAsString(this.input);
 	} 
 	
 	public String getOutput() {
 		return getMemoryWordAsString(this.output);
+	}
+
+	public String getOutputBase10() {
+		return String.format("%d", this.output);
 	}
 		
 	private String getMemoryWordAsString(long word) {

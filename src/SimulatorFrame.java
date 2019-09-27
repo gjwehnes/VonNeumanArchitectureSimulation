@@ -37,7 +37,8 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private final static Mode mode = Mode.DEMO;
+	private final static Mode MODE = Mode.DEMO;
+	private final static boolean BASE_10_IO = (MODE == Mode.DEMO);
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -86,7 +87,7 @@ public class SimulatorFrame extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {					
-					SimulatorFrame frame = new SimulatorFrame(mode);
+					SimulatorFrame frame = new SimulatorFrame(MODE);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -122,11 +123,13 @@ public class SimulatorFrame extends JFrame {
         contentPane.setLayout(null);
         
         txtInstructionRegister = new JTextField();
-        txtInstructionRegister.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtInstructionRegister.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInstructionRegister.setBounds(124, 112, 128, 27);
         contentPane.add(txtInstructionRegister);
         txtInstructionRegister.setText(simulator.getInstructionRegister());
         txtInstructionRegister.setColumns(10);
+        txtInstructionRegister.setHorizontalAlignment(JTextField.RIGHT);
+
         
         btnCheck = new JButton("Check");
         btnCheck.addMouseListener(new MouseAdapter() {
@@ -145,10 +148,11 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(lblInstructionRegister);
         
         txtProgramCounter = new JTextField();
-        txtProgramCounter.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtProgramCounter.setFont(new Font("Consolas", Font.BOLD, 16));
         txtProgramCounter.setColumns(10);
         txtProgramCounter.setBounds(124, 175, 128, 27);
         txtProgramCounter.setText(this.simulator.getProgramCounterAsString());
+        txtProgramCounter.setHorizontalAlignment(JTextField.RIGHT);
         contentPane.add(txtProgramCounter);
         
         lblProgramCounter = new JLabel(" PC");
@@ -160,13 +164,14 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(lblProgramCounter);
         
         txtAccumulator = new JTextField();
-        txtAccumulator.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtAccumulator.setFont(new Font("Consolas", Font.BOLD, 16));
         txtAccumulator.setColumns(10);
         txtAccumulator.setBounds(124, 307, 128, 27);
         txtAccumulator.setText(simulator.getAccumulator());
+        txtAccumulator.setHorizontalAlignment(JTextField.RIGHT);
         contentPane.add(txtAccumulator);
         
-        lblAccumulator = new JLabel(" Acc.");
+        lblAccumulator = new JLabel(" Acc");
         lblAccumulator.setOpaque(true);
         lblAccumulator.setHorizontalAlignment(SwingConstants.LEFT);
         lblAccumulator.setFont(new Font("Tahoma", Font.BOLD, 16));
@@ -303,33 +308,39 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(btnInstructionSet);
         
         txtInput = new JTextField();
-        txtInput.setText(simulator.getInput());
-        txtInput.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtInput.setText(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
+        txtInput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInput.setColumns(10);
         txtInput.setBounds(600, 431, 128, 27);
+        txtInput.setHorizontalAlignment(BASE_10_IO ? JTextField.RIGHT : JTextField.LEFT);
+        txtInput.setForeground(Color.RED);
+        txtInput.setBackground(Color.BLACK);
         contentPane.add(txtInput);
         
-        lblInput = new JLabel(" IN");
+        lblInput = new JLabel(" IN (base 10)");
         lblInput.setOpaque(true);
         lblInput.setHorizontalAlignment(SwingConstants.LEFT);
         lblInput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblInput.setBackground(Color.LIGHT_GRAY);
-        lblInput.setBounds(556, 413, 195, 58);
+        lblInput.setBounds(453, 413, 298, 58);
         contentPane.add(lblInput);
         
         txtOutput = new JTextField();
-        txtOutput.setText(simulator.getOutput());
-        txtOutput.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
+        txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
         txtOutput.setBounds(600, 498, 128, 27);
+        txtOutput.setHorizontalAlignment(BASE_10_IO ? JTextField.RIGHT : JTextField.LEFT);
+        txtOutput.setForeground(Color.RED);
+        txtOutput.setBackground(Color.BLACK);
         contentPane.add(txtOutput);
         
-        lblOutput = new JLabel(" OUT");
+        lblOutput = new JLabel(" OUT (base 10)");
         lblOutput.setOpaque(true);
         lblOutput.setHorizontalAlignment(SwingConstants.LEFT);
         lblOutput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblOutput.setBackground(Color.LIGHT_GRAY);
-        lblOutput.setBounds(556, 480, 195, 58);
+        lblOutput.setBounds(453, 480, 298, 58);
         contentPane.add(lblOutput);
 		
         initializeGrid();
@@ -360,9 +371,10 @@ public class SimulatorFrame extends JFrame {
 		
 		for (int row = 0; row < memory.length; row++) {
 			memory[row] = new JTextField();
-			memory[row].setFont(new Font("Courier New", Font.PLAIN, 16));
+			memory[row].setFont(new Font("Consolas", Font.BOLD, 16));
 			memory[row].setBounds(lblContent.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
 	        memory[row].setText(simulator.getMemoryWordAsString(row));
+	        memory[row].setHorizontalAlignment(JTextField.RIGHT);
 	        contentPane.add(memory[row]);
 	        contentPane.setComponentZOrder(memory[row], 0);
 		}
@@ -420,8 +432,8 @@ public class SimulatorFrame extends JFrame {
 		correctAnswer = this.txtInstructionRegister.getText().equalsIgnoreCase(simulator.getInstructionRegister());
 		correctAnswer &= this.txtProgramCounter.getText().equalsIgnoreCase(simulator.getProgramCounterAsString());
 		correctAnswer &= this.txtAccumulator.getText().equalsIgnoreCase(simulator.getAccumulator());
-		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(simulator.getInput());
-		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(simulator.getOutput());
+		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
+		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
 
 		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
 			correctAnswer &= this.memory[i].getText().equalsIgnoreCase(simulator.getMemoryWordAsString(i));
@@ -432,8 +444,8 @@ public class SimulatorFrame extends JFrame {
 	
 	private void setControls() {
 		
-		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && mode != Mode.DEMO);
-		this.lblIncorrect.setVisible(incorrectAnswer && mode != Mode.DEMO);
+		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO);
+		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO);
 		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE);
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
@@ -445,9 +457,9 @@ public class SimulatorFrame extends JFrame {
 		int currentAddress = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
 
-		this.lblArrow.setVisible(mode == Mode.DEMO);
-		this.lblCurrentStep.setVisible(mode != Mode.DEMO);
-		this.txtCurrentStepDescription.setVisible(mode != Mode.DEMO);
+		this.lblArrow.setVisible(MODE == Mode.DEMO);
+		this.lblCurrentStep.setVisible(MODE != Mode.DEMO);
+		this.txtCurrentStepDescription.setVisible(MODE != Mode.DEMO);
 		
 	
 	
