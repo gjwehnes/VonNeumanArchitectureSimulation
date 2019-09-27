@@ -208,7 +208,7 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(lblCPU);
         
         lblBusses = new JLabel("Busses");
-        lblBusses.setBounds(326, 360, 120, 30);
+        lblBusses.setBounds(326, 280, 120, 300);
         lblBusses.setIcon(new ImageIcon("res\\busses.png"));
         
         contentPane.add(lblBusses);
