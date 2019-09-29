@@ -113,7 +113,7 @@ public class Simulator {
 			memory[2] = 0x21000024;		//08	SUB   	00 00 1C
 			memory[3] = 0x22000028;		//0C	MULT   	00 00 1C
 			memory[4] = 0x2300002C;		//10	DIV 	00 00 20
-			memory[5] = 0x41000020;		//14	WRITE	00 00 20
+			memory[5] = 0x11000020;		//14	WRITE	00 00 20
 			memory[6] = 0x41000020;		//18	OUTPUT	
 			memory[7] = 0x7FFFFFFF;		//1C	STOP		
 
