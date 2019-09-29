@@ -21,8 +21,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Dialog.ModalityType;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -32,13 +35,15 @@ import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private final static Mode MODE = Mode.DEMO;
-	private final static boolean BASE_10_IO = (MODE == Mode.DEMO);
+	private final static Mode MODE = Mode.DEMO_DESCRIPTIVE;
+	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -96,11 +101,21 @@ public class SimulatorFrame extends JFrame {
 		});
 	}
 
+	class KeyDispatcher implements KeyEventDispatcher {
+		//https://planetjon.ca/3089/java-global-jframe-key-listener/
+	    public boolean dispatchKeyEvent(KeyEvent e) {
+	        if(e.getID() == KeyEvent.KEY_TYPED && (MODE == Mode.DEMO_SILENT || MODE == Mode.DEMO_DESCRIPTIVE)) {
+	        	this_keyTyped(e);	 
+	        }
+	        //Allow the event to be redispatched
+	        return false;
+	    }
+	}	
+	
 	/**
 	 * Create the frame.
 	 */
-	public SimulatorFrame(Mode mode) {
-		
+	public SimulatorFrame(Mode mode) {		
 		
 		Random random = new Random(System.currentTimeMillis());
 //		VerhoeffAlgorithm verhoeff = new VerhoeffAlgorithm();
@@ -111,13 +126,20 @@ public class SimulatorFrame extends JFrame {
 		long modulus = (randomInt * 100) % 97;
 		long checkSum = (98 - ((randomInt * 100) % 97) );
 		String passCode = Long.toString(randomInt) + Long.toString(checkSum);
-		System.out.println(Math.floorMod(Long.parseLong(passCode),97));
+
 		simulator = new Simulator(mode);
+
 		this.setTitle("Von Neumann Simulator: MODE = " + mode.toString());
-		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 778, 663);
+		KeyboardFocusManager manager =
+		         KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		manager.addKeyEventDispatcher( new KeyDispatcher() );
+		 
+
 		contentPane = new JPanel();
+		contentPane.setFocusable(MODE == Mode.DEMO_SILENT);
+
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
         contentPane.setLayout(null);
@@ -208,7 +230,7 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(lblCPU);
         
         lblBusses = new JLabel("Busses");
-        lblBusses.setBounds(326, 280, 120, 300);
+        lblBusses.setBounds(320, 280, 120, 246);
         lblBusses.setIcon(new ImageIcon("res\\busses.png"));
         
         contentPane.add(lblBusses);
@@ -216,7 +238,7 @@ public class SimulatorFrame extends JFrame {
         lblArrow = new JLabel(" --->");
         lblArrow.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblArrow.setIcon(new ImageIcon("res\\program counter.png"));        
-        lblArrow.setBounds(405, 60, 48, 30);
+        lblArrow.setBounds(390, 60, 48, 30);
         contentPane.add(lblArrow);
                 
         lblAddress = new JLabel();
@@ -224,7 +246,7 @@ public class SimulatorFrame extends JFrame {
         lblAddress.setText("Address");
         lblAddress.setOpaque(true);
         lblAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblAddress.setBounds(470, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        lblAddress.setBounds(460, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblAddress);
         
         lblContent = new JLabel();
@@ -232,7 +254,7 @@ public class SimulatorFrame extends JFrame {
         lblContent.setText("   +1 +2 +3");
         lblContent.setOpaque(true);
         lblContent.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblContent.setBounds(608, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        lblContent.setBounds(600, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblContent);
         //        contentPane.add(lblBackground);
                 
@@ -243,7 +265,7 @@ public class SimulatorFrame extends JFrame {
         lblMemory.setHorizontalAlignment(SwingConstants.CENTER);
         lblMemory.setFont(new Font("Tahoma", Font.BOLD, 24));
         lblMemory.setBackground(Color.DARK_GRAY);
-        lblMemory.setBounds(453, 11, 298, 391);
+        lblMemory.setBounds(440, 11, 298, 391);
         contentPane.add(lblMemory);
 
         txtCompletionCode = new JTextField(passCode);
@@ -322,10 +344,11 @@ public class SimulatorFrame extends JFrame {
         lblInput.setHorizontalAlignment(SwingConstants.LEFT);
         lblInput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblInput.setBackground(Color.LIGHT_GRAY);
-        lblInput.setBounds(453, 413, 298, 58);
+        lblInput.setBounds(440, 413, 298, 58);
         contentPane.add(lblInput);
         
         txtOutput = new JTextField();
+        txtOutput.setEditable(MODE != Mode.DEMO_SILENT);
         txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
         txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
@@ -340,7 +363,7 @@ public class SimulatorFrame extends JFrame {
         lblOutput.setHorizontalAlignment(SwingConstants.LEFT);
         lblOutput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblOutput.setBackground(Color.LIGHT_GRAY);
-        lblOutput.setBounds(453, 480, 298, 58);
+        lblOutput.setBounds(440, 480, 298, 58);
         contentPane.add(lblOutput);
 		
         initializeGrid();
@@ -442,10 +465,25 @@ public class SimulatorFrame extends JFrame {
 		incorrectAnswer = ! correctAnswer;
 	}
 	
+	private void setInputCorrect() {
+
+		this.txtInstructionRegister.setText(simulator.getInstructionRegister());
+		this.txtProgramCounter.setText(simulator.getProgramCounterAsString());
+		this.txtAccumulator.setText(simulator.getAccumulator());
+		this.txtInput.setText(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
+		this.txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
+
+		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
+			this.memory[i].setText(simulator.getMemoryWordAsString(i));
+		}
+		
+	}
+	
+	
 	private void setControls() {
 		
-		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO);
-		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO);
+		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO_SILENT);
+		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO_SILENT);
 		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE);
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
@@ -457,13 +495,24 @@ public class SimulatorFrame extends JFrame {
 		int currentAddress = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
 
-		this.lblArrow.setVisible(MODE == Mode.DEMO);
-		this.lblCurrentStep.setVisible(MODE != Mode.DEMO);
-		this.txtCurrentStepDescription.setVisible(MODE != Mode.DEMO);
-		
-	
-	
+		this.lblArrow.setVisible(MODE == Mode.DEMO_DESCRIPTIVE);
+		this.lblCurrentStep.setVisible(MODE != Mode.DEMO_SILENT);
+		this.txtCurrentStepDescription.setVisible(MODE != Mode.DEMO_SILENT);
+			
 		this.contentPane.setEnabled(simulator.getState() != State.COMPLETE);
+		
+		this.btnCheck.setVisible(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE);
+		this.btnNext.setVisible(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE);
+		this.btnInstructionSet.setVisible(MODE != Mode.DEMO_SILENT);
+
+		Component[] components = this.getContentPane().getComponents();
+		
+	    for (Component component : components) {
+	        if (component instanceof JTextField) {
+	        	((JTextField) component).setEditable(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE );
+	        }
+	    }		
+		this.repaint();
 		
 	}
 		
@@ -488,5 +537,15 @@ public class SimulatorFrame extends JFrame {
 		this.repaint();		
 		is = null;
 	}	
+	
+	private void this_keyTyped(KeyEvent arg0) {
+		if (arg0.getKeyChar() == ' ') {
+			simulator.moveNextStep();
+			this.setInputCorrect();
+			transition(Action.NEXT);
+			setControls();
+		}
+	}
+
 	
 }

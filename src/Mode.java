@@ -1,6 +1,7 @@
 
 public enum Mode {
-	DEMO,
+	DEMO_SILENT,
+	DEMO_DESCRIPTIVE,
 	SIMPLE,
 	INTERMEDIATE
 }

@@ -11,8 +11,10 @@ public class Simulator {
 //	DIV		23	xx	xx	xx	Divide accumulator value by value at address xxxxxx. Integer division, no remainder!
 //  DMULT	26 	yy  yy  yy  Multiply accumulator value by value yyyyyy
 //  DDIV	27 	yy  yy  yy  Divide accumulator value by value yyyyyy. Integer division, no remainder!
+
 //	INPUT	40	xx	xx	xx	Load value from input device into address xxxxxx
 //	OUTPUT	41	xx	xx	xx	Store value at address xxxxxx in output device
+
 //	JUMP	51	xx	xx	xx	Jump to address xxxxxx
 //	JUMPIF	52	xx	xx	xx	Jump to address xxxxxx if compare flag is TRUE
 //	AND		60	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
@@ -101,7 +103,7 @@ public class Simulator {
 			output = 0;
 						
 		}
-		else if (mode == Mode.DEMO) {
+		else if (mode == Mode.DEMO_SILENT || mode == Mode.DEMO_DESCRIPTIVE) {
 
 			WORDS_IN_PROGRAM = 12;
 			memory = new long[WORDS_IN_PROGRAM];
