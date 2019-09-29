@@ -42,7 +42,7 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private final static Mode MODE = Mode.DEMO_DESCRIPTIVE;
+	private final static Mode MODE = Mode.DEMO_SILENT;
 	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
@@ -228,18 +228,17 @@ public class SimulatorFrame extends JFrame {
         lblCPU.setBackground(Color.DARK_GRAY);
         lblCPU.setBounds(35, 11, 286, 391);
         contentPane.add(lblCPU);
-        
-        lblBusses = new JLabel("Busses");
-        lblBusses.setBounds(320, 280, 120, 246);
-        lblBusses.setIcon(new ImageIcon("res\\busses.png"));
-        
-        contentPane.add(lblBusses);
-        
+                
         lblArrow = new JLabel(" --->");
         lblArrow.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblArrow.setIcon(new ImageIcon("res\\program counter.png"));        
         lblArrow.setBounds(390, 60, 48, 30);
         contentPane.add(lblArrow);
+        
+        lblBusses = new JLabel("Busses");
+        lblBusses.setBounds(320, 280, 120, 246);
+        lblBusses.setIcon(new ImageIcon("res\\busses.png"));        
+        contentPane.add(lblBusses);
                 
         lblAddress = new JLabel();
         lblAddress.setBackground(Color.LIGHT_GRAY);
@@ -484,7 +483,7 @@ public class SimulatorFrame extends JFrame {
 		
 		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO_SILENT);
 		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO_SILENT);
-		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE);
+		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE ));
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
@@ -495,21 +494,21 @@ public class SimulatorFrame extends JFrame {
 		int currentAddress = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
 
-		this.lblArrow.setVisible(MODE == Mode.DEMO_DESCRIPTIVE);
+		this.lblArrow.setVisible(MODE == Mode.DEMO_SILENT || MODE == Mode.DEMO_DESCRIPTIVE);
 		this.lblCurrentStep.setVisible(MODE != Mode.DEMO_SILENT);
 		this.txtCurrentStepDescription.setVisible(MODE != Mode.DEMO_SILENT);
 			
 		this.contentPane.setEnabled(simulator.getState() != State.COMPLETE);
 		
-		this.btnCheck.setVisible(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE);
-		this.btnNext.setVisible(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE);
+		this.btnCheck.setVisible(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE);
+		this.btnNext.setVisible(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE);
 		this.btnInstructionSet.setVisible(MODE != Mode.DEMO_SILENT);
 
 		Component[] components = this.getContentPane().getComponents();
 		
 	    for (Component component : components) {
 	        if (component instanceof JTextField) {
-	        	((JTextField) component).setEditable(MODE != Mode.DEMO_DESCRIPTIVE && MODE != Mode.DEMO_DESCRIPTIVE );
+	        	((JTextField) component).setEditable(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE );
 	        }
 	    }		
 		this.repaint();
