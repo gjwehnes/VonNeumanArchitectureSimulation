@@ -42,7 +42,7 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private final static Mode MODE = Mode.DEMO_SILENT;
+	private final static Mode MODE = Mode.INTERMEDIATE;
 	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
@@ -539,10 +539,11 @@ public class SimulatorFrame extends JFrame {
 	
 	private void this_keyTyped(KeyEvent arg0) {
 		if (arg0.getKeyChar() == ' ') {
-			simulator.moveNextStep();
-			this.setInputCorrect();
+			correctAnswer = true;
 			transition(Action.NEXT);
+			this.setInputCorrect();
 			setControls();
+			System.out.println(simulator.getState().toString());
 		}
 	}
 
