@@ -43,7 +43,11 @@ public class SimulatorFrame extends JFrame {
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
 	private static Mode MODE = Mode.DEMO_DESCRIPTIVE;
+<<<<<<< HEAD
+	private static boolean BASE_10_IO = false;
+=======
 	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
+>>>>>>> refs/remotes/origin/master
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -105,7 +109,12 @@ public class SimulatorFrame extends JFrame {
 						else if (args[0].toUpperCase().contains(Mode.DEMO_DESCRIPTIVE.toString())) {
 							MODE = Mode.DEMO_DESCRIPTIVE;
 						}
+<<<<<<< HEAD
+					}
+					BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE) || (MODE == Mode.INTERMEDIATE);
+=======
 					}										
+>>>>>>> refs/remotes/origin/master
 					SimulatorFrame frame = new SimulatorFrame(MODE);
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -347,7 +356,7 @@ public class SimulatorFrame extends JFrame {
         txtInput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInput.setColumns(10);
         txtInput.setBounds(600, 431, 128, 27);
-        txtInput.setHorizontalAlignment(BASE_10_IO ? JTextField.RIGHT : JTextField.LEFT);
+        txtInput.setHorizontalAlignment(JTextField.RIGHT);
         txtInput.setForeground(Color.RED);
         txtInput.setBackground(Color.BLACK);
         contentPane.add(txtInput);
@@ -366,7 +375,7 @@ public class SimulatorFrame extends JFrame {
         txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
         txtOutput.setBounds(600, 498, 128, 27);
-        txtOutput.setHorizontalAlignment(BASE_10_IO ? JTextField.RIGHT : JTextField.LEFT);
+        txtOutput.setHorizontalAlignment(JTextField.RIGHT);
         txtOutput.setForeground(Color.RED);
         txtOutput.setBackground(Color.BLACK);
         contentPane.add(txtOutput);
