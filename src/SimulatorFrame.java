@@ -42,7 +42,7 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private final static Mode MODE = Mode.INTERMEDIATE;
+	private static Mode MODE = Mode.DEMO_DESCRIPTIVE;
 	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
@@ -91,7 +91,21 @@ public class SimulatorFrame extends JFrame {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				try {					
+				try {
+					if (args != null && args.length > 0) {
+						if (args[0].toUpperCase().contains(Mode.SIMPLE.toString())) {
+							MODE = Mode.SIMPLE;
+						}
+						else if (args[0].toUpperCase().contains(Mode.INTERMEDIATE.toString())) {
+							MODE = Mode.INTERMEDIATE;
+						}
+						else if (args[0].toUpperCase().contains(Mode.DEMO_SILENT.toString())) {
+							MODE = Mode.DEMO_SILENT;
+						}
+						else if (args[0].toUpperCase().contains(Mode.DEMO_DESCRIPTIVE.toString())) {
+							MODE = Mode.DEMO_DESCRIPTIVE;
+						}
+					}										
 					SimulatorFrame frame = new SimulatorFrame(MODE);
 					frame.setVisible(true);
 				} catch (Exception e) {
