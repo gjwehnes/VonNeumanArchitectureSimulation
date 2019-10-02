@@ -7,6 +7,7 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
@@ -42,7 +43,7 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private static Mode MODE = Mode.INTERMEDIATE;
+	private static Mode MODE = Mode.SIMPLE;
 	private static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
@@ -91,6 +92,15 @@ public class SimulatorFrame extends JFrame {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				
+				ImageIcon ii = new ImageIcon("res\\busses.png");
+				if (ii.getIconWidth() <= 0) {
+					//somehow cannot read the res folder; exit
+					JOptionPane.showMessageDialog(null,
+						    "Cannot open resource folder","VN-simulator", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
 				try {
 					if (args != null && args.length > 0) {
 						if (args[0].toUpperCase().contains(Mode.SIMPLE.toString())) {
@@ -144,7 +154,7 @@ public class SimulatorFrame extends JFrame {
 
 		simulator = new Simulator(mode);
 
-		this.setTitle("Von Neumann Simulator: MODE = " + mode.toString());
+		this.setTitle("Von Neumann Simulator: MODE = " + mode.toString());		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 778, 663);
 		KeyboardFocusManager manager =
