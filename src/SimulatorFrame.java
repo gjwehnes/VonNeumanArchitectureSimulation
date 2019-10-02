@@ -42,12 +42,8 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private static Mode MODE = Mode.DEMO_DESCRIPTIVE;
-<<<<<<< HEAD
-	private static boolean BASE_10_IO = false;
-=======
-	private final static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
->>>>>>> refs/remotes/origin/master
+	private static Mode MODE = Mode.INTERMEDIATE;
+	private static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -109,12 +105,8 @@ public class SimulatorFrame extends JFrame {
 						else if (args[0].toUpperCase().contains(Mode.DEMO_DESCRIPTIVE.toString())) {
 							MODE = Mode.DEMO_DESCRIPTIVE;
 						}
-<<<<<<< HEAD
 					}
 					BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE) || (MODE == Mode.INTERMEDIATE);
-=======
-					}										
->>>>>>> refs/remotes/origin/master
 					SimulatorFrame frame = new SimulatorFrame(MODE);
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -361,7 +353,7 @@ public class SimulatorFrame extends JFrame {
         txtInput.setBackground(Color.BLACK);
         contentPane.add(txtInput);
         
-        lblInput = new JLabel(" IN (base 10)");
+        lblInput = new JLabel(BASE_10_IO ? " IN (base 10)" : " IN (base 16)");
         lblInput.setOpaque(true);
         lblInput.setHorizontalAlignment(SwingConstants.LEFT);
         lblInput.setFont(new Font("Tahoma", Font.BOLD, 16));
@@ -380,7 +372,7 @@ public class SimulatorFrame extends JFrame {
         txtOutput.setBackground(Color.BLACK);
         contentPane.add(txtOutput);
         
-        lblOutput = new JLabel(" OUT (base 10)");
+        lblOutput = new JLabel(BASE_10_IO ? " OUT (base 10)" : " OUT (base 16)");
         lblOutput.setOpaque(true);
         lblOutput.setHorizontalAlignment(SwingConstants.LEFT);
         lblOutput.setFont(new Font("Tahoma", Font.BOLD, 16));
