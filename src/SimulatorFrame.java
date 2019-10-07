@@ -1,8 +1,8 @@
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
-import javax.activation.ActivationDataFlavor;
-import javax.activation.DataHandler;
+//import javax.activation.ActivationDataFlavor;
+//import javax.activation.DataHandler;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -20,6 +20,7 @@ import javax.swing.JComponent;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDateTime;
 import java.util.Random;
 import java.awt.Color;
 import java.awt.Component;
@@ -144,13 +145,13 @@ public class SimulatorFrame extends JFrame {
 		
 		Random random = new Random(System.currentTimeMillis());
 //		VerhoeffAlgorithm verhoeff = new VerhoeffAlgorithm();
-		int randomInt =  (int)(random.nextDouble() * 1000000);
+		int randomInt =  (int)(random.nextDouble() * 1000);	
+		long minuteOfYear = (LocalDateTime.now().getDayOfYear() * 24 * 60) + (LocalDateTime.now().getHour() * 60) + (LocalDateTime.now().getMinute());		
+		long mod97 = (minuteOfYear * 1000) + randomInt;
 //		String verhoeffDigit = verhoeff.generateVerhoeff(Integer.toString(randomInt));
 //		this.verhoeffCode = Integer.toString(randomInt) + verhoeffDigit;
-		//mod(98 - mod(number * 100, 97), 97)
-		long modulus = (randomInt * 100) % 97;
-		long checkSum = (98 - ((randomInt * 100) % 97) );
-		String passCode = Long.toString(randomInt) + Long.toString(checkSum);
+		long checkSum = (98 - ((mod97 * 100) % 97) );
+		String passCode = Long.toString(mod97) + Long.toString(checkSum);
 
 		simulator = new Simulator(mode);
 
@@ -295,7 +296,7 @@ public class SimulatorFrame extends JFrame {
         txtCompletionCode = new JTextField(passCode);
         txtCompletionCode.setOpaque(true);
         txtCompletionCode.setHorizontalAlignment(SwingConstants.CENTER);
-        txtCompletionCode.setFont(new Font("Tahoma", Font.BOLD, 16));
+        txtCompletionCode.setFont(new Font("Tahoma", Font.BOLD, 12));
         txtCompletionCode.setBackground(new Color (0, 102, 255));
         txtCompletionCode.setForeground(Color.WHITE);
         txtCompletionCode.setBounds(186, 506, 141, 49);
@@ -509,6 +510,7 @@ public class SimulatorFrame extends JFrame {
 		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO_SILENT);
 		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO_SILENT);
 		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE ));
+		this.txtCompletionCode.setVisible(true);
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
