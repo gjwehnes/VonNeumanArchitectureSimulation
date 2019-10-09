@@ -53,6 +53,7 @@ public class SimulatorFrame extends JFrame {
 	private String verhoeffCode;
 	private JButton btnNext;
 	private JButton btnCheck;
+	private JButton btnPrevious;
 	private Simulator simulator;
 	
 	private JTextField txtInstructionRegister;
@@ -260,12 +261,7 @@ public class SimulatorFrame extends JFrame {
         lblArrow.setIcon(new ImageIcon("res\\program counter.png"));        
         lblArrow.setBounds(390, 60, 48, 30);
         contentPane.add(lblArrow);
-        
-        lblBusses = new JLabel("Busses");
-        lblBusses.setBounds(320, 280, 120, 246);
-        lblBusses.setIcon(new ImageIcon("res\\busses.png"));        
-        contentPane.add(lblBusses);
-                
+                        
         lblAddress = new JLabel();
         lblAddress.setBackground(Color.LIGHT_GRAY);
         lblAddress.setText("Address");
@@ -299,26 +295,31 @@ public class SimulatorFrame extends JFrame {
         txtCompletionCode.setFont(new Font("Tahoma", Font.BOLD, 12));
         txtCompletionCode.setBackground(new Color (0, 102, 255));
         txtCompletionCode.setForeground(Color.WHITE);
-        txtCompletionCode.setBounds(186, 506, 141, 49);
+        txtCompletionCode.setBounds(141, 528, 96, 27);
         txtCompletionCode.setEditable(false);
         contentPane.add(txtCompletionCode);
 
         lblCorrect = new JLabel("Correct!");
         lblCorrect.setOpaque(true);
         lblCorrect.setHorizontalAlignment(SwingConstants.CENTER);
-        lblCorrect.setFont(new Font("Tahoma", Font.PLAIN, 32));
+        lblCorrect.setFont(new Font("Tahoma", Font.PLAIN, 16));
         lblCorrect.setBackground(Color.GREEN);
-        lblCorrect.setBounds(186, 506, 141, 49);
+        lblCorrect.setBounds(141, 528, 96, 27);
         contentPane.add(lblCorrect);
         
         lblIncorrect = new JLabel("Incorrect");
         lblIncorrect.setOpaque(true);
         lblIncorrect.setHorizontalAlignment(SwingConstants.CENTER);
-        lblIncorrect.setFont(new Font("Tahoma", Font.PLAIN, 32));
+        lblIncorrect.setFont(new Font("Tahoma", Font.PLAIN, 16));
         lblIncorrect.setBackground(Color.ORANGE);
-        lblIncorrect.setBounds(35, 506, 141, 49);
+        lblIncorrect.setBounds(141, 528, 96, 27);
         contentPane.add(lblIncorrect);
         
+        lblBusses = new JLabel("Busses");
+        lblBusses.setBounds(320, 280, 120, 246);
+        lblBusses.setIcon(new ImageIcon("res\\busses.png"));        
+        contentPane.add(lblBusses);
+
         lblCurrentStep = new JLabel("current step");
         lblCurrentStep.setFont(new Font("Tahoma", Font.PLAIN, 18));
         lblCurrentStep.setBounds(35, 413, 292, 27);
@@ -331,7 +332,7 @@ public class SimulatorFrame extends JFrame {
         txtCurrentStepDescription.setBounds(34, 448, 287, 49);
         txtCurrentStepDescription.setLineWrap(true);
         contentPane.add(txtCurrentStepDescription);
-        btnCheck.setBounds(35, 566, 141, 49);
+        btnCheck.setBounds(141, 566, 96, 30);
         contentPane.add(btnCheck);
         
         btnNext = new JButton("Next");
@@ -341,8 +342,19 @@ public class SimulatorFrame extends JFrame {
         		btnNext_mouseClicked(arg0);
         	}
         });
-        btnNext.setBounds(186, 566, 141, 49);
+        btnNext.setBounds(247, 566, 96, 30);
         contentPane.add(btnNext);
+        
+        btnPrevious = new JButton("Prev");
+        btnPrevious.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent arg0) {
+        		btnPrevious_mouseClicked(arg0);
+        	}
+        });
+        btnPrevious.setBounds(35, 566, 96, 30);
+        contentPane.add(btnPrevious);
+        
         
         btnInstructionSet = new JButton("Instruction Set");
         btnInstructionSet.addMouseListener(new MouseAdapter() {
@@ -351,7 +363,7 @@ public class SimulatorFrame extends JFrame {
         		btnInstructionSet_mouseClicked(arg0);
         	}
         });
-        btnInstructionSet.setBounds(457, 566, 141, 49);
+        btnInstructionSet.setBounds(440, 566, 125, 27);
         contentPane.add(btnInstructionSet);
         
         txtInput = new JTextField();
@@ -390,7 +402,7 @@ public class SimulatorFrame extends JFrame {
         lblOutput.setBackground(Color.LIGHT_GRAY);
         lblOutput.setBounds(440, 480, 298, 58);
         contentPane.add(lblOutput);
-		
+        		
         initializeGrid();
         
         JLabel lblBackground = new JLabel("New label");
@@ -510,10 +522,10 @@ public class SimulatorFrame extends JFrame {
 		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO_SILENT);
 		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO_SILENT);
 		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE ));
-		this.txtCompletionCode.setVisible(true);
 		
-		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE);
+		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE && simulator.getState() != State.START);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
+		this.btnPrevious.setEnabled(simulator.getPreviousState() != null);
 		
 		this.lblCurrentStep.setText(simulator.getState().toString());
 		this.txtCurrentStepDescription.setText(simulator.getState().getDescription());				
@@ -541,14 +553,39 @@ public class SimulatorFrame extends JFrame {
 		this.repaint();
 		
 	}
+
+	protected void btnPrevious_mouseClicked(MouseEvent arg0) {
+
+		if (this.btnPrevious.isEnabled() == false ) {
+			return;
+		}
 		
+		if (simulator.getPreviousState() != null) {
+			correctAnswer = true;
+			simulator = simulator.getPreviousState();
+			this.setInputCorrect();
+			setControls();
+		}
+	}
+
+	
 	protected void btnNext_mouseClicked(MouseEvent arg0) {
+		
+		if (this.btnNext.isEnabled() == false ) {
+			return;
+		}
+		
 		transition(Action.NEXT);
 		setControls();
 	}
 
 	
 	protected void btnCheck_mouseClicked(MouseEvent e) {
+		
+		if (this.btnCheck.isEnabled() == false ) {
+			return;
+		}
+		
 		simulator.printCurrentState();
 		transition(Action.CHECK);
 		setControls();
@@ -572,7 +609,14 @@ public class SimulatorFrame extends JFrame {
 			setControls();
 			System.out.println(simulator.getState().toString());
 		}
+		else if (arg0.getKeyChar() == 'b') {
+			if (simulator.getPreviousState() != null) {
+				correctAnswer = true;
+				simulator = simulator.getPreviousState();
+				this.setInputCorrect();
+				setControls();
+				System.out.println(simulator.getState().toString());
+			}
+		}
 	}
-
-	
 }

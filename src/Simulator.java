@@ -36,6 +36,8 @@ public class Simulator {
 	
 	private long[] memory;
 
+	private Simulator previousState = null;
+	
 	public Simulator(Mode mode) {
 		super();
 		this.instructionRegister = 0;
@@ -168,7 +170,11 @@ public class Simulator {
 	public String getOutputBase10() {
 		return String.format("%d", this.output);
 	}
-		
+	
+	public Simulator getPreviousState() {
+		return this.previousState;
+	}
+	
 	private String getMemoryWordAsString(long word) {
 		long remainder = word;
 		int byte0 = (int)(remainder / (256 * 256 * 256));
@@ -193,7 +199,26 @@ public class Simulator {
 		return getMemoryAddressAsString(0, (word * 4) / 256, (word * 4) % 256 );	
 	}
 		
+	public Simulator clone() {
+		
+		Simulator clone = new Simulator(null);
+		
+		clone.accumulator = this.accumulator;
+		clone.input = this.input;
+		clone.instructionRegister = this.instructionRegister;
+		clone.memory = this.memory.clone();
+		clone.output = this.output;
+		clone.programCounter = this.programCounter;
+		clone.state = this.state;
+		clone.previousState = this.previousState;
+		
+		return clone;
+	}
+	
 	public void moveNextStep() {
+		
+		this.previousState = this.clone();
+		
 		if (state == State.START) {
 			state = State.AFTER_FETCH;
 			this.instructionRegister = memory[programCounter];
