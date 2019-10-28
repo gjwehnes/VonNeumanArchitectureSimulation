@@ -145,14 +145,11 @@ public class SimulatorFrame extends JFrame {
 	public SimulatorFrame(Mode mode) {		
 		
 		Random random = new Random(System.currentTimeMillis());
-//		VerhoeffAlgorithm verhoeff = new VerhoeffAlgorithm();
 		int randomInt =  (int)(random.nextDouble() * 1000);	
 		long minuteOfYear = (LocalDateTime.now().getDayOfYear() * 24 * 60) + (LocalDateTime.now().getHour() * 60) + (LocalDateTime.now().getMinute());		
 		long mod97 = (minuteOfYear * 1000) + randomInt;
-//		String verhoeffDigit = verhoeff.generateVerhoeff(Integer.toString(randomInt));
-//		this.verhoeffCode = Integer.toString(randomInt) + verhoeffDigit;
 		long checkSum = (98 - ((mod97 * 100) % 97) );
-		String passCode = Long.toString(mod97) + Long.toString(checkSum);
+		String passCode = String.format("%09d%02d", mod97, checkSum);
 
 		simulator = new Simulator(mode);
 
