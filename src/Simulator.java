@@ -12,9 +12,6 @@ public class Simulator {
 //  DMULT	26 	yy  yy  yy  Multiply accumulator value by value yyyyyy
 //  DDIV	27 	yy  yy  yy  Divide accumulator value by value yyyyyy. Integer division, no remainder!
 
-//	INPUT	40	xx	xx	xx	Load value from input device into address xxxxxx
-//	OUTPUT	41	xx	xx	xx	Store value at address xxxxxx in output device
-
 //	JUMP	51	xx	xx	xx	Jump to address xxxxxx
 //	JUMPIF	52	xx	xx	xx	Jump to address xxxxxx if compare flag is TRUE
 //	AND		60	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
@@ -23,6 +20,15 @@ public class Simulator {
 //	XOR		63	xx	xx	xx	Logical AND accumulator value and value at address xxxxxx
 //  CLEAR	70	00	00	00	Set the accumulator to zero
 //	STOP	7F	FF	FF	FF	
+	public final int READ = 0x10;
+	public final int WRITE = 0x11;	
+	public final int ADD = 0x20;
+	public final int SUB = 0x21;
+	public final int MULT = 0x22;
+	public final int DIV = 0x23;
+	
+	public final long INPUT_ADDRESS = 0xFF0000;
+	public final long OUTPUT_ADDRESS = 0xFF0004;
 	
 	private long instructionRegister = 0;
 	private long accumulator = 0;
@@ -33,6 +39,8 @@ public class Simulator {
 	private State state = State.START;
 	public int BYTES_PER_WORD = 4;
 	public int WORDS_IN_PROGRAM = 8;
+	
+	public final int STOP = 0x7F;
 	
 	private long[] memory;
 
@@ -50,56 +58,49 @@ public class Simulator {
 				
 		if (mode == Mode.SIMPLE) {
 			//randomize program - for now just a simple addition of two values, of which one comes from the input
-			WORDS_IN_PROGRAM = 9;
+			WORDS_IN_PROGRAM = 5;
 			memory = new long[WORDS_IN_PROGRAM];
 			
 			long valueOne = (long)(Math.random() * 256 * 256);
 			long valueTwo = (long)(Math.random() * 256 * 256);
 			
-			memory[0] = 0x4000001C;		//00	INPUT 	00 00 1C
-			memory[1] = 0x10000018;		//04	READ  	00 00 18
-			memory[2] = 0x2000001C;		//08	ADD   	00 00 1C
-			memory[3] = 0x11000020;		//0C	WRITE 	00 00 20
-			memory[4] = 0x41000020;		//10	OUTPUT	00 00 20	
-			memory[5] = 0x7FFFFFFF;		//14	STOP		
+			memory[0] = createInstruction(READ, INPUT_ADDRESS);
+			memory[1] = createInstruction(ADD, getWordAsAddress(4));
+			memory[2] = createInstruction(WRITE, OUTPUT_ADDRESS);
+			memory[3] = createInstruction(STOP, 000000); 
 
-			memory[6] = valueTwo;		//18	input value
-			memory[7] = 0x00000000;		//1C	value to add
-			memory[8] = 0x00000000;		//20	sum
+			memory[4] = valueOne;		//1C	value to add
 			
-			input = valueOne;
+			input = valueTwo;
 			output = 0;
 						
 		}
 		else if (mode == Mode.INTERMEDIATE) {
-			WORDS_IN_PROGRAM = 10;
+			WORDS_IN_PROGRAM = 7;
 			memory = new long[WORDS_IN_PROGRAM];
 			
 			long valueOne = (long)(Math.random() * 256 * 256);
-			long valueTwo = (long)(Math.random() * 256 * 256);
-			long valueThree = (long)(Math.random() * 16);
-			
-			memory[0] = 0x4000001C;				//00	INPUT 	00 00 1C
-			memory[1] = 0x1000001C;				//04	READ  	00 00 1C
-			if ((int)(Math.random() * 2) == 0) {
-				memory[2] = 0x20000020;			//08	ADD   	00 00 20
-			}
-			else {
-				memory[2] = 0x20000020;			//08	SUB   	00 00 20
-			}
-			if ((int)(Math.random() * 2) == 0) {
-				memory[3] = 0x22000024;			//0C	MULT   	00 00 24
-			}
-			else {
-				memory[3] = 0x23000024;			//0C	DIV   	00 00 24
-			}
-			memory[4] = 0x1100001C;				//10	WRITE 	00 00 1C
-			memory[5] = 0x4100001C;				//14	OUTPUT	00 00 1C	
-			memory[6] = 0x7FFFFFFF;				//18	STOP		
+			long valueTwo = (long)(Math.random() * valueOne);
+			long valueThree = (long)(Math.random() * 15) + 1;
 
-			memory[7] = 0x00000000;				//1C	input value
-			memory[8] = valueTwo;				//20	value to add / subtract
-			memory[9] = valueThree;				//24	value to multiply / divide
+			memory[0] = createInstruction(READ, INPUT_ADDRESS);
+			if ((int)(Math.random() * 2) == 0) {
+				memory[1] = createInstruction(ADD,getWordAsAddress(5));
+			}
+			else {
+				memory[1] = createInstruction(SUB, getWordAsAddress(5));
+			}
+			if ((int)(Math.random() * 2) == 0) {
+				memory[2] = createInstruction(MULT, getWordAsAddress(6));
+			}
+			else {
+				memory[2] = createInstruction(DIV,getWordAsAddress(6));
+			}
+			memory[3] = createInstruction(WRITE, OUTPUT_ADDRESS);
+			memory[4] = createInstruction(STOP, 000000); 
+
+			memory[5] = valueTwo;						//20	value to add / subtract
+			memory[6] = valueThree;						//24	value to multiply / divide
 			
 			input = valueOne;
 			output = 0;
@@ -110,19 +111,16 @@ public class Simulator {
 			WORDS_IN_PROGRAM = 12;
 			memory = new long[WORDS_IN_PROGRAM];
 						
-			memory[0] = 0x40000020;		//00	INPUT 	00 00 1C
-			memory[1] = 0x10000020;		//04	READ  	00 00 18
-			memory[2] = 0x21000024;		//08	SUB   	00 00 1C
-			memory[3] = 0x22000028;		//0C	MULT   	00 00 1C
-			memory[4] = 0x2300002C;		//10	DIV 	00 00 20
-			memory[5] = 0x11000020;		//14	WRITE	00 00 20
-			memory[6] = 0x41000020;		//18	OUTPUT	
-			memory[7] = 0x7FFFFFFF;		//1C	STOP		
+			memory[0] = createInstruction(READ, INPUT_ADDRESS);
+			memory[1] = createInstruction(SUB,getWordAsAddress(6));
+			memory[2] = createInstruction(MULT,getWordAsAddress(7));
+			memory[3] = createInstruction(DIV,getWordAsAddress(8));
+			memory[4] = createInstruction(WRITE, OUTPUT_ADDRESS);
+			memory[5] = createInstruction(STOP, 000000);
 
-			memory[8] = 0x00000000;		//20	input value
-			memory[9] = 0x00000020;		//24	value to subtract
-			memory[10] = 0x00000005;	//28	value to multiply
-			memory[11] = 0x00000009;	//2C	value to divide
+			memory[6] = 0x00000020;					//value to subtract
+			memory[7] = 0x00000005;					//value to multiply
+			memory[8] = 0x00000009;					//value to divide
 			
 			input = 0x48;
 			output = 0;
@@ -148,7 +146,11 @@ public class Simulator {
 	}
 	
 	public String getProgramCounterAsString() {
-		return getMemoryAddressAsString(programCounter);
+		return getMemoryAddressAsString(programCounter * 4);
+	}
+	
+	public long getWordAsAddress(int index) {
+		return (long)(index * 4);
 	}
 	
 	public String getAccumulator() {
@@ -175,6 +177,10 @@ public class Simulator {
 		return this.previousState;
 	}
 	
+	public long createInstruction(int instruction, long address) {
+		return (instruction * 256 * 256 * 256) + address;
+	}
+	
 	private String getMemoryWordAsString(long word) {
 		long remainder = word;
 		int byte0 = (int)(remainder / (256 * 256 * 256));
@@ -191,12 +197,12 @@ public class Simulator {
 		return String.format("%02X %02X %02X %02X", byte0, byte1, byte2, byte3);
 	}
 		
-	private String getMemoryAddressAsString(int byte0, int byte1, int byte2) {
+	private String getMemoryAddressAsString(byte byte0, byte byte1, byte byte2) {
 		return String.format("%02X %02X %02X", byte0, byte1, byte2);
 	}	
 	
-	public String getMemoryAddressAsString(int word) {
-		return getMemoryAddressAsString(0, (word * 4) / 256, (word * 4) % 256 );	
+	public String getMemoryAddressAsString(long word) {
+		return getMemoryAddressAsString((byte)(word>>16), (byte)((word & 0x00ff00)>>8), (byte)(word & 0x0000ff));	
 	}
 		
 	public Simulator clone() {
@@ -228,34 +234,44 @@ public class Simulator {
 		else if (state == State.AFTER_FETCH) {
 			state = State.AFTER_EXECUTE;
 			//instruction has executed...
-			int instruction = (int) (instructionRegister / (256 * 256 * 256));
-			long address = instructionRegister % 256;
+			int instruction = (int) (instructionRegister / 0xffffff);
+			long address = instructionRegister % (0xffffff);
+			address = instructionRegister & 0xffffff;
+						
 			switch(instruction) {
-				case 0x10:	//READ
-					accumulator = memory[(int) (address / 4)];
+				case READ:	//READ
+					if (address == INPUT_ADDRESS) {
+						accumulator = input;
+					}
+					else if (address == OUTPUT_ADDRESS) {
+						accumulator = output;
+					} else {
+						accumulator = memory[(int) (address / 4)];						
+					}
 					break;
-				case 0x11:	//WRITE
-					memory[(int) (address / 4)] = accumulator;
+				case WRITE:	//WRITE
+					if (address == INPUT_ADDRESS) {
+						input = accumulator;
+					}
+					else if (address == OUTPUT_ADDRESS) {
+						output = accumulator;
+					} else {
+						memory[(int) (address / 4)] = accumulator;
+					}
 					break;
-				case 0x20:	//add
+				case ADD:	//add
 					accumulator += memory[(int) (address / 4)];
 					break;
-				case 0x21:	//subtract
+				case SUB:	//subtract
 					accumulator -= memory[(int) (address / 4)];
 					break;
-				case 0x22:	//multiply
+				case MULT:	//multiply
 					accumulator *= memory[(int) (address / 4)];
 					break;
-				case 0x23:	//multiply
+				case DIV:	//multiply
 					accumulator /= memory[(int) (address / 4)];
 					break;
-				case 0x40:	//input
-					memory[(int) (address / 4)] = input;
-					break;					
-				case 0x41:  //output
-					output = memory[(int) (address / 4)];
-					break;
-				case 0x7F: //stop
+				case STOP: //stop
 					state = State.COMPLETE;
 				default:	//UNKNOWN
 					

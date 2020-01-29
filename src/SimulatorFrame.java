@@ -44,7 +44,7 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private static Mode MODE = Mode.SIMPLE;
+	private static Mode MODE = Mode.DEMO_DESCRIPTIVE;
 	private static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
 	
 	private JPanel contentPane;
@@ -167,6 +167,11 @@ public class SimulatorFrame extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
         contentPane.setLayout(null);
+        
+        lblBusses = new JLabel("Busses");
+        lblBusses.setBounds(320, 280, 120, 246);
+        lblBusses.setIcon(new ImageIcon("res\\busses.png"));        
+        contentPane.add(lblBusses);
         
         txtInstructionRegister = new JTextField();
         txtInstructionRegister.setFont(new Font("Consolas", Font.BOLD, 16));
@@ -311,11 +316,6 @@ public class SimulatorFrame extends JFrame {
         lblIncorrect.setBackground(Color.ORANGE);
         lblIncorrect.setBounds(141, 528, 96, 27);
         contentPane.add(lblIncorrect);
-        
-        lblBusses = new JLabel("Busses");
-        lblBusses.setBounds(320, 280, 120, 246);
-        lblBusses.setIcon(new ImageIcon("res\\busses.png"));        
-        contentPane.add(lblBusses);
 
         lblCurrentStep = new JLabel("current step");
         lblCurrentStep.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -363,43 +363,59 @@ public class SimulatorFrame extends JFrame {
         btnInstructionSet.setBounds(440, 566, 125, 27);
         contentPane.add(btnInstructionSet);
         
+        JTextField txtInputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.INPUT_ADDRESS));
+        txtInputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtInputAddress.setBounds(460, 436 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtInputAddress.setEditable(false);
+        contentPane.add(txtInputAddress);
+
         txtInput = new JTextField();
         txtInput.setText(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
         txtInput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInput.setColumns(10);
-        txtInput.setBounds(600, 431, 128, 27);
+        txtInput.setBounds(600, 436, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         txtInput.setHorizontalAlignment(JTextField.RIGHT);
         txtInput.setForeground(Color.RED);
         txtInput.setBackground(Color.BLACK);
         contentPane.add(txtInput);
         
-        lblInput = new JLabel(BASE_10_IO ? " IN (base 10)" : " IN (base 16)");
+        lblInput = new JLabel("INPUT " +  (BASE_10_IO ? " (base 10)" : " (base 16)"));
+        lblInput.setFont(new Font("Consolas", Font.BOLD, 16));
         lblInput.setOpaque(true);
-        lblInput.setHorizontalAlignment(SwingConstants.LEFT);
+        lblInput.setHorizontalAlignment(SwingConstants.CENTER);
+        lblInput.setVerticalAlignment(SwingConstants.TOP);
         lblInput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblInput.setBackground(Color.LIGHT_GRAY);
-        lblInput.setBounds(440, 413, 298, 58);
+        lblInput.setBounds(440, 412, 298, 58);
         contentPane.add(lblInput);
-        
+                
+        JTextField txtOutputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.OUTPUT_ADDRESS));
+        txtOutputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
+        txtOutputAddress.setBounds(460, 504 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtOutputAddress.setEditable(false);
+        contentPane.add(txtOutputAddress);
+
         txtOutput = new JTextField();
         txtOutput.setEditable(MODE != Mode.DEMO_SILENT);
         txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
         txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
-        txtOutput.setBounds(600, 498, 128, 27);
+        txtOutput.setBounds(600, 504, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         txtOutput.setHorizontalAlignment(JTextField.RIGHT);
         txtOutput.setForeground(Color.RED);
         txtOutput.setBackground(Color.BLACK);
-        contentPane.add(txtOutput);
+        contentPane.add(txtOutput);        
         
-        lblOutput = new JLabel(BASE_10_IO ? " OUT (base 10)" : " OUT (base 16)");
+        lblOutput = new JLabel("OUTPUT " +  (BASE_10_IO ? " (base 10)" : " (base 16)"));
+        lblOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         lblOutput.setOpaque(true);
-        lblOutput.setHorizontalAlignment(SwingConstants.LEFT);
+        lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
+        lblOutput.setVerticalAlignment(SwingConstants.TOP);
         lblOutput.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblOutput.setBackground(Color.LIGHT_GRAY);
         lblOutput.setBounds(440, 480, 298, 58);
         contentPane.add(lblOutput);
-        		
+        
         initializeGrid();
         
         JLabel lblBackground = new JLabel("New label");
@@ -420,7 +436,7 @@ public class SimulatorFrame extends JFrame {
 			address[row] = new JTextField();
 			address[row].setFont(new Font("Courier New", Font.PLAIN, 16));
 			address[row].setBounds(lblAddress.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
-			address[row].setText(simulator.getMemoryAddressAsString(row));				
+			address[row].setText(simulator.getMemoryAddressAsString(row*4));				
 			address[row].setEditable(false);
 	        contentPane.add(address[row]);
 	        contentPane.setComponentZOrder(address[row], 0);
@@ -527,8 +543,8 @@ public class SimulatorFrame extends JFrame {
 		this.lblCurrentStep.setText(simulator.getState().toString());
 		this.txtCurrentStepDescription.setText(simulator.getState().getDescription());				
 		
-		int currentAddress = simulator.getProgramCounter();
-		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentAddress + 1) * MEMORY_CELL_ROW_HEIGHT);
+		int currentWord = simulator.getProgramCounter();
+		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentWord + 1) * MEMORY_CELL_ROW_HEIGHT);
 
 		this.lblArrow.setVisible(MODE == Mode.DEMO_SILENT || MODE == Mode.DEMO_DESCRIPTIVE);
 		this.lblCurrentStep.setVisible(MODE != Mode.DEMO_SILENT);
