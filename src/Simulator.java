@@ -46,7 +46,7 @@ public class Simulator {
 
 	private Simulator previousState = null;
 	
-	public Simulator(Mode mode) {
+	public Simulator(ProgramMode mode) {
 		super();
 		this.instructionRegister = 0;
 		this.accumulator = 0;
@@ -56,7 +56,7 @@ public class Simulator {
 		
 		Random random = new Random(System.currentTimeMillis());
 				
-		if (mode == Mode.SIMPLE) {
+		if (mode == ProgramMode.SIMPLE) {
 			//randomize program - for now just a simple addition of two values, of which one comes from the input
 			WORDS_IN_PROGRAM = 5;
 			memory = new long[WORDS_IN_PROGRAM];
@@ -75,7 +75,7 @@ public class Simulator {
 			output = 0;
 						
 		}
-		else if (mode == Mode.INTERMEDIATE) {
+		else if (mode == ProgramMode.INTERMEDIATE) {
 			WORDS_IN_PROGRAM = 7;
 			memory = new long[WORDS_IN_PROGRAM];
 			
@@ -106,7 +106,7 @@ public class Simulator {
 			output = 0;
 						
 		}
-		else if (mode == Mode.DEMO_SILENT || mode == Mode.DEMO_DESCRIPTIVE) {
+		else if (mode == ProgramMode.TEMPERATURE_CONVERSION ) {
 
 			WORDS_IN_PROGRAM = 12;
 			memory = new long[WORDS_IN_PROGRAM];

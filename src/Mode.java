@@ -1,7 +1,0 @@
-
-public enum Mode {
-	DEMO_SILENT,
-	DEMO_DESCRIPTIVE,
-	SIMPLE,
-	INTERMEDIATE
-}

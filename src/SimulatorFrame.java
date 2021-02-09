@@ -44,8 +44,10 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private static Mode MODE = Mode.DEMO_DESCRIPTIVE;
-	private static boolean BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE);
+	private static ProgramMode PROGRAM_MODE = ProgramMode.TEMPERATURE_CONVERSION;
+	private static DisplayMode DISPLAY_MODE = DisplayMode.INSTRUCTIONS;
+	private static RunMode RUN_MODE = RunMode.DEMO_DESCRIPTIVE;
+	private static IOMode IO_MODE = IOMode.BASE_16;
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -105,21 +107,55 @@ public class SimulatorFrame extends JFrame {
 				
 				try {
 					if (args != null && args.length > 0) {
-						if (args[0].toUpperCase().contains(Mode.SIMPLE.toString())) {
-							MODE = Mode.SIMPLE;
+						if (args[0].toUpperCase().contains(ProgramMode.SIMPLE.toString())) {
+							PROGRAM_MODE = ProgramMode.SIMPLE;
 						}
-						else if (args[0].toUpperCase().contains(Mode.INTERMEDIATE.toString())) {
-							MODE = Mode.INTERMEDIATE;
+						else if (args[0].toUpperCase().contains(ProgramMode.INTERMEDIATE.toString())) {
+							PROGRAM_MODE = ProgramMode.INTERMEDIATE;
 						}
-						else if (args[0].toUpperCase().contains(Mode.DEMO_SILENT.toString())) {
-							MODE = Mode.DEMO_SILENT;
+						else if (args[0].toUpperCase().contains(ProgramMode.TEMPERATURE_CONVERSION.toString())) {
+							PROGRAM_MODE = ProgramMode.TEMPERATURE_CONVERSION;
 						}
-						else if (args[0].toUpperCase().contains(Mode.DEMO_DESCRIPTIVE.toString())) {
-							MODE = Mode.DEMO_DESCRIPTIVE;
+						else {
+							//use default
 						}
+						
+						if (args[1].toUpperCase().contains(RunMode.DEMO_SILENT.toString())) {
+							RUN_MODE = RunMode.DEMO_SILENT;
+						}
+						else if (args[1].toUpperCase().contains(RunMode.DEMO_DESCRIPTIVE.toString())) {
+							RUN_MODE = RunMode.DEMO_DESCRIPTIVE;
+						}
+						else if (args[1].toUpperCase().contains(RunMode.INTERACTIVE.toString())) {
+							RUN_MODE = RunMode.INTERACTIVE;
+						}
+						else {
+							//use default
+						}
+						
+						if (args[2].toUpperCase().contains(DisplayMode.INSTRUCTIONS.toString())) {
+							DISPLAY_MODE = DisplayMode.INSTRUCTIONS;
+						}
+						else if (args[2].toUpperCase().contains(DisplayMode.CODES.toString())) {
+							DISPLAY_MODE = DisplayMode.CODES;
+						}
+						else {
+							//use default
+						}
+						
+						if (args[3].toUpperCase().contains(IOMode.BASE_10.toString())) {
+							IO_MODE = IOMode.BASE_10;
+						}
+						else if (args[3].toUpperCase().contains(IOMode.BASE_16.toString())) {
+							IO_MODE = IOMode.BASE_16;
+						}
+						else {
+							//use default
+						}
+						
+						
 					}
-					BASE_10_IO = (MODE == Mode.DEMO_SILENT) || (MODE == Mode.DEMO_DESCRIPTIVE) || (MODE == Mode.INTERMEDIATE);
-					SimulatorFrame frame = new SimulatorFrame(MODE);
+					SimulatorFrame frame = new SimulatorFrame();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -131,7 +167,7 @@ public class SimulatorFrame extends JFrame {
 	class KeyDispatcher implements KeyEventDispatcher {
 		//https://planetjon.ca/3089/java-global-jframe-key-listener/
 	    public boolean dispatchKeyEvent(KeyEvent e) {
-	        if(e.getID() == KeyEvent.KEY_TYPED && (MODE == Mode.DEMO_SILENT || MODE == Mode.DEMO_DESCRIPTIVE)) {
+	        if(e.getID() == KeyEvent.KEY_TYPED && (RUN_MODE != RunMode.INTERACTIVE)) {
 	        	this_keyTyped(e);	 
 	        }
 	        //Allow the event to be redispatched
@@ -142,7 +178,7 @@ public class SimulatorFrame extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public SimulatorFrame(Mode mode) {		
+	public SimulatorFrame() {		
 		
 		Random random = new Random(System.currentTimeMillis());
 		int randomInt =  (int)(random.nextDouble() * 1000);	
@@ -151,9 +187,9 @@ public class SimulatorFrame extends JFrame {
 		long checkSum = (98 - ((mod97 * 100) % 97) );
 		String passCode = String.format("%09d%02d", mod97, checkSum);
 
-		simulator = new Simulator(mode);
+		simulator = new Simulator(PROGRAM_MODE);
 
-		this.setTitle("Von Neumann Simulator: MODE = " + mode.toString());		
+		this.setTitle("Von Neumann Simulator: Program = " + PROGRAM_MODE.toString());		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 778, 663);
 		KeyboardFocusManager manager =
@@ -162,7 +198,7 @@ public class SimulatorFrame extends JFrame {
 		 
 
 		contentPane = new JPanel();
-		contentPane.setFocusable(MODE == Mode.DEMO_SILENT);
+		contentPane.setFocusable(RUN_MODE == RunMode.DEMO_SILENT);
 
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -370,7 +406,7 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(txtInputAddress);
 
         txtInput = new JTextField();
-        txtInput.setText(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
+        txtInput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput());
         txtInput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInput.setColumns(10);
         txtInput.setBounds(600, 436, 128, MEMORY_CELL_ROW_HEIGHT - 2);
@@ -379,7 +415,7 @@ public class SimulatorFrame extends JFrame {
         txtInput.setBackground(Color.BLACK);
         contentPane.add(txtInput);
         
-        lblInput = new JLabel("INPUT " +  (BASE_10_IO ? " (base 10)" : " (base 16)"));
+        lblInput = new JLabel("INPUT " +  (IO_MODE == IOMode.BASE_10 ? " (base 10)" : " (base 16)"));
         lblInput.setFont(new Font("Consolas", Font.BOLD, 16));
         lblInput.setOpaque(true);
         lblInput.setHorizontalAlignment(SwingConstants.CENTER);
@@ -396,8 +432,8 @@ public class SimulatorFrame extends JFrame {
         contentPane.add(txtOutputAddress);
 
         txtOutput = new JTextField();
-        txtOutput.setEditable(MODE != Mode.DEMO_SILENT);
-        txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
+        txtOutput.setEditable(RUN_MODE == RunMode.INTERACTIVE);
+        txtOutput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput());
         txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
         txtOutput.setBounds(600, 504, 128, MEMORY_CELL_ROW_HEIGHT - 2);
@@ -406,7 +442,7 @@ public class SimulatorFrame extends JFrame {
         txtOutput.setBackground(Color.BLACK);
         contentPane.add(txtOutput);        
         
-        lblOutput = new JLabel("OUTPUT " +  (BASE_10_IO ? " (base 10)" : " (base 16)"));
+        lblOutput = new JLabel("OUTPUT " +  (IO_MODE == IOMode.BASE_10 ? " (base 10)" : " (base 16)"));
         lblOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         lblOutput.setOpaque(true);
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
@@ -505,8 +541,8 @@ public class SimulatorFrame extends JFrame {
 		correctAnswer = this.txtInstructionRegister.getText().equalsIgnoreCase(simulator.getInstructionRegister());
 		correctAnswer &= this.txtProgramCounter.getText().equalsIgnoreCase(simulator.getProgramCounterAsString());
 		correctAnswer &= this.txtAccumulator.getText().equalsIgnoreCase(simulator.getAccumulator());
-		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
-		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
+		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput());
+		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput());
 
 		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
 			correctAnswer &= this.memory[i].getText().equalsIgnoreCase(simulator.getMemoryWordAsString(i));
@@ -520,8 +556,8 @@ public class SimulatorFrame extends JFrame {
 		this.txtInstructionRegister.setText(simulator.getInstructionRegister());
 		this.txtProgramCounter.setText(simulator.getProgramCounterAsString());
 		this.txtAccumulator.setText(simulator.getAccumulator());
-		this.txtInput.setText(BASE_10_IO ? simulator.getInputBase10() : simulator.getInput());
-		this.txtOutput.setText(BASE_10_IO ? simulator.getOutputBase10() : simulator.getOutput());
+		this.txtInput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput());
+		this.txtOutput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput());
 
 		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
 			this.memory[i].setText(simulator.getMemoryWordAsString(i));
@@ -532,9 +568,9 @@ public class SimulatorFrame extends JFrame {
 	
 	private void setControls() {
 		
-		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && MODE != Mode.DEMO_SILENT);
-		this.lblIncorrect.setVisible(incorrectAnswer && MODE != Mode.DEMO_SILENT);
-		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE ));
+		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && RUN_MODE != RunMode.DEMO_SILENT);
+		this.lblIncorrect.setVisible(incorrectAnswer && RUN_MODE != RunMode.DEMO_SILENT);
+		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (RUN_MODE == RunMode.INTERACTIVE));
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE && simulator.getState() != State.START);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
@@ -546,21 +582,21 @@ public class SimulatorFrame extends JFrame {
 		int currentWord = simulator.getProgramCounter();
 		this.lblArrow.setLocation(this.lblArrow.getX(), this.lblAddress.getY() + (currentWord + 1) * MEMORY_CELL_ROW_HEIGHT);
 
-		this.lblArrow.setVisible(MODE == Mode.DEMO_SILENT || MODE == Mode.DEMO_DESCRIPTIVE);
-		this.lblCurrentStep.setVisible(MODE != Mode.DEMO_SILENT);
-		this.txtCurrentStepDescription.setVisible(MODE != Mode.DEMO_SILENT);
+		this.lblArrow.setVisible(RUN_MODE != RunMode.INTERACTIVE);
+		this.lblCurrentStep.setVisible(RUN_MODE != RunMode.DEMO_SILENT);
+		this.txtCurrentStepDescription.setVisible(RUN_MODE != RunMode.DEMO_SILENT);
 			
 		this.contentPane.setEnabled(simulator.getState() != State.COMPLETE);
 		
-		this.btnCheck.setVisible(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE);
-		this.btnNext.setVisible(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE);
-		this.btnInstructionSet.setVisible(MODE != Mode.DEMO_SILENT);
+		this.btnCheck.setVisible(RUN_MODE == RunMode.INTERACTIVE);
+		this.btnNext.setVisible(RUN_MODE == RunMode.INTERACTIVE);
+		this.btnInstructionSet.setVisible(RUN_MODE != RunMode.DEMO_SILENT);
 
 		Component[] components = this.getContentPane().getComponents();
 		
 	    for (Component component : components) {
 	        if (component instanceof JTextField) {
-	        	((JTextField) component).setEditable(MODE != Mode.DEMO_SILENT && MODE != Mode.DEMO_DESCRIPTIVE );
+	        	((JTextField) component).setEditable(RUN_MODE == RunMode.INTERACTIVE );
 	        }
 	    }		
 		this.repaint();
