@@ -26,6 +26,7 @@ public class Simulator {
 	public final int SUB = 0x21;
 	public final int MULT = 0x22;
 	public final int DIV = 0x23;
+	public final int STOP = 0x7F;
 	
 	public final long INPUT_ADDRESS = 0xFF0000;
 	public final long OUTPUT_ADDRESS = 0xFF0004;
@@ -40,23 +41,25 @@ public class Simulator {
 	public int BYTES_PER_WORD = 4;
 	public int WORDS_IN_PROGRAM = 8;
 	
-	public final int STOP = 0x7F;
+	DisplayMode displayMode = DisplayMode.CODES;
+	
 	
 	private long[] memory;
 
 	private Simulator previousState = null;
 	
-	public Simulator(ProgramMode mode) {
+	public Simulator(ProgramMode programMode, DisplayMode displayMode) {
 		super();
 		this.instructionRegister = 0;
 		this.accumulator = 0;
 		this.programCounter = 0;
 		this.input = 0;
 		this.output = 0;
+		this.displayMode = displayMode;
 		
 		Random random = new Random(System.currentTimeMillis());
 				
-		if (mode == ProgramMode.SIMPLE) {
+		if (programMode == ProgramMode.SIMPLE) {
 			//randomize program - for now just a simple addition of two values, of which one comes from the input
 			WORDS_IN_PROGRAM = 5;
 			memory = new long[WORDS_IN_PROGRAM];
@@ -75,7 +78,7 @@ public class Simulator {
 			output = 0;
 						
 		}
-		else if (mode == ProgramMode.INTERMEDIATE) {
+		else if (programMode == ProgramMode.INTERMEDIATE) {
 			WORDS_IN_PROGRAM = 7;
 			memory = new long[WORDS_IN_PROGRAM];
 			
@@ -106,7 +109,7 @@ public class Simulator {
 			output = 0;
 						
 		}
-		else if (mode == ProgramMode.TEMPERATURE_CONVERSION ) {
+		else if (programMode == ProgramMode.TEMPERATURE_CONVERSION ) {
 
 			WORDS_IN_PROGRAM = 12;
 			memory = new long[WORDS_IN_PROGRAM];
@@ -134,13 +137,27 @@ public class Simulator {
 	}
 	
 	public String getMemoryWordAsString(int index) {
-		return getMemoryWordAsString(memory[index]);
+		if (displayMode == DisplayMode.CODES) {
+			return getMemoryWordAsString(memory[index]);
+		}
+		else {
+			String word = getMemoryWordAsString(memory[index]);
+			int instruction = Integer.parseInt(word.substring(0, 2), 16) ;				
+			return getInstruction(instruction) + word.substring(2);
+		}
 	}
-
+	
 	public String getInstructionRegister() {
-		return getMemoryWordAsString(instructionRegister);
+		if (displayMode == DisplayMode.CODES) {
+			return getMemoryWordAsString(instructionRegister);
+		}
+		else {
+			String word = getMemoryWordAsString(instructionRegister);
+			int instruction = Integer.parseInt(word.substring(0, 2), 16) ;				
+			return getInstruction(instruction) + word.substring(2);
+		}
 	}
-
+	
 	public int getProgramCounter() {
 		return programCounter;
 	}
@@ -193,6 +210,28 @@ public class Simulator {
 		return getMemoryWordAsString(byte0, byte1, byte2, byte3);
 	}
 	
+	private String getInstruction(int instruction) {
+		
+		switch (instruction) {
+			case READ:
+					return "READ";
+			case WRITE:
+					return "WRITE";
+			case ADD:
+					return "ADD";
+			case SUB:
+				return "SUB";
+			case MULT:
+				return "MULT";
+			case DIV:
+				return "DIV";
+			case STOP:
+				return "STOP";
+			default:
+				return String.format("  %02X", instruction);
+		}
+	}
+	
 	private String getMemoryWordAsString(int byte0, int byte1, int byte2, int byte3) {
 		return String.format("%02X %02X %02X %02X", byte0, byte1, byte2, byte3);
 	}
@@ -207,7 +246,7 @@ public class Simulator {
 		
 	public Simulator clone() {
 		
-		Simulator clone = new Simulator(null);
+		Simulator clone = new Simulator(null, displayMode);
 		
 		clone.accumulator = this.accumulator;
 		clone.input = this.input;

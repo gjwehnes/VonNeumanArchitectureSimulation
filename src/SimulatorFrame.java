@@ -187,7 +187,7 @@ public class SimulatorFrame extends JFrame {
 		long checkSum = (98 - ((mod97 * 100) % 97) );
 		String passCode = String.format("%09d%02d", mod97, checkSum);
 
-		simulator = new Simulator(PROGRAM_MODE);
+		simulator = new Simulator(PROGRAM_MODE, DISPLAY_MODE);
 
 		this.setTitle("Von Neumann Simulator: Program = " + PROGRAM_MODE.toString());		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -211,7 +211,7 @@ public class SimulatorFrame extends JFrame {
         
         txtInstructionRegister = new JTextField();
         txtInstructionRegister.setFont(new Font("Consolas", Font.BOLD, 16));
-        txtInstructionRegister.setBounds(124, 112, 128, 27);
+        txtInstructionRegister.setBounds(116, 112, 136, 27);
         contentPane.add(txtInstructionRegister);
         txtInstructionRegister.setText(simulator.getInstructionRegister());
         txtInstructionRegister.setColumns(10);
@@ -237,7 +237,7 @@ public class SimulatorFrame extends JFrame {
         txtProgramCounter = new JTextField();
         txtProgramCounter.setFont(new Font("Consolas", Font.BOLD, 16));
         txtProgramCounter.setColumns(10);
-        txtProgramCounter.setBounds(124, 175, 128, 27);
+        txtProgramCounter.setBounds(116, 175, 136, 27);
         txtProgramCounter.setText(this.simulator.getProgramCounterAsString());
         txtProgramCounter.setHorizontalAlignment(JTextField.RIGHT);
         contentPane.add(txtProgramCounter);
@@ -305,7 +305,7 @@ public class SimulatorFrame extends JFrame {
         lblAddress.setText("Address");
         lblAddress.setOpaque(true);
         lblAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblAddress.setBounds(460, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        lblAddress.setBounds(452, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblAddress);
         
         lblContent = new JLabel();
@@ -313,7 +313,7 @@ public class SimulatorFrame extends JFrame {
         lblContent.setText("   +1 +2 +3");
         lblContent.setOpaque(true);
         lblContent.setFont(new Font("Courier New", Font.PLAIN, 16));
-        lblContent.setBounds(600, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        lblContent.setBounds(592, MEMORY_GRID_TOP, 136, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblContent);
         //        contentPane.add(lblBackground);
                 
@@ -401,7 +401,7 @@ public class SimulatorFrame extends JFrame {
         
         JTextField txtInputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.INPUT_ADDRESS));
         txtInputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
-        txtInputAddress.setBounds(460, 436 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtInputAddress.setBounds(452, 436 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
         txtInputAddress.setEditable(false);
         contentPane.add(txtInputAddress);
 
@@ -409,7 +409,7 @@ public class SimulatorFrame extends JFrame {
         txtInput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput());
         txtInput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtInput.setColumns(10);
-        txtInput.setBounds(600, 436, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtInput.setBounds(592, 436, 136, MEMORY_CELL_ROW_HEIGHT - 2);
         txtInput.setHorizontalAlignment(JTextField.RIGHT);
         txtInput.setForeground(Color.RED);
         txtInput.setBackground(Color.BLACK);
@@ -427,7 +427,7 @@ public class SimulatorFrame extends JFrame {
                 
         JTextField txtOutputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.OUTPUT_ADDRESS));
         txtOutputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
-        txtOutputAddress.setBounds(460, 504 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtOutputAddress.setBounds(452, 504 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
         txtOutputAddress.setEditable(false);
         contentPane.add(txtOutputAddress);
 
@@ -436,7 +436,7 @@ public class SimulatorFrame extends JFrame {
         txtOutput.setText(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput());
         txtOutput.setFont(new Font("Consolas", Font.BOLD, 16));
         txtOutput.setColumns(10);
-        txtOutput.setBounds(600, 504, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+        txtOutput.setBounds(592, 504, 136, MEMORY_CELL_ROW_HEIGHT - 2);
         txtOutput.setHorizontalAlignment(JTextField.RIGHT);
         txtOutput.setForeground(Color.RED);
         txtOutput.setBackground(Color.BLACK);
@@ -471,7 +471,7 @@ public class SimulatorFrame extends JFrame {
 		for (int row = 0; row < address.length; row++) {
 			address[row] = new JTextField();
 			address[row].setFont(new Font("Courier New", Font.PLAIN, 16));
-			address[row].setBounds(lblAddress.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+			address[row].setBounds(lblAddress.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, lblAddress.getWidth(), MEMORY_CELL_ROW_HEIGHT - 2);
 			address[row].setText(simulator.getMemoryAddressAsString(row*4));				
 			address[row].setEditable(false);
 	        contentPane.add(address[row]);
@@ -481,7 +481,7 @@ public class SimulatorFrame extends JFrame {
 		for (int row = 0; row < memory.length; row++) {
 			memory[row] = new JTextField();
 			memory[row].setFont(new Font("Consolas", Font.BOLD, 16));
-			memory[row].setBounds(lblContent.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, 128, MEMORY_CELL_ROW_HEIGHT - 2);
+			memory[row].setBounds(lblContent.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, lblContent.getWidth(), MEMORY_CELL_ROW_HEIGHT - 2);
 	        memory[row].setText(simulator.getMemoryWordAsString(row));
 	        memory[row].setHorizontalAlignment(JTextField.RIGHT);
 	        contentPane.add(memory[row]);
