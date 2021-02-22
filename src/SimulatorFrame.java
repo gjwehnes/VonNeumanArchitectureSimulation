@@ -47,7 +47,7 @@ public class SimulatorFrame extends JFrame {
 	private static ProgramMode PROGRAM_MODE = ProgramMode.TEMPERATURE_CONVERSION;
 	private static DisplayMode DISPLAY_MODE = DisplayMode.INSTRUCTIONS;
 	private static RunMode RUN_MODE = RunMode.DEMO_DESCRIPTIVE;
-	private static IOMode IO_MODE = IOMode.BASE_16;
+	private static IOMode IO_MODE = IOMode.BASE_10;
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -538,17 +538,21 @@ public class SimulatorFrame extends JFrame {
 	
 	private void getInputCorrect() {
 
-		correctAnswer = this.txtInstructionRegister.getText().equalsIgnoreCase(simulator.getInstructionRegister());
-		correctAnswer &= this.txtProgramCounter.getText().equalsIgnoreCase(simulator.getProgramCounterAsString());
-		correctAnswer &= this.txtAccumulator.getText().equalsIgnoreCase(simulator.getAccumulator());
-		correctAnswer &= this.txtInput.getText().equalsIgnoreCase(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput());
-		correctAnswer &= this.txtOutput.getText().equalsIgnoreCase(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput());
+		correctAnswer = isEquivalent(this.txtInstructionRegister.getText(),simulator.getInstructionRegister());
+		correctAnswer &= isEquivalent(this.txtProgramCounter.getText(),simulator.getProgramCounterAsString());
+		correctAnswer &= isEquivalent(this.txtAccumulator.getText(),simulator.getAccumulator());
+		correctAnswer &= isEquivalent(this.txtInput.getText(),(IO_MODE == IOMode.BASE_10 ? simulator.getInputBase10() : simulator.getInput()));
+		correctAnswer &= isEquivalent(this.txtOutput.getText(),(IO_MODE == IOMode.BASE_10 ? simulator.getOutputBase10() : simulator.getOutput()));
 
 		for (int i = 0; i < simulator.WORDS_IN_PROGRAM; i++) {
-			correctAnswer &= this.memory[i].getText().equalsIgnoreCase(simulator.getMemoryWordAsString(i));
+			correctAnswer &= isEquivalent(this.memory[i].getText(),simulator.getMemoryWordAsString(i));
 		}
 		
 		incorrectAnswer = ! correctAnswer;
+	}
+	
+	private boolean isEquivalent(String a, String b) {
+		return a.trim().equalsIgnoreCase(b.trim());
 	}
 	
 	private void setInputCorrect() {
