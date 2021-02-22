@@ -256,6 +256,9 @@ public class Simulator {
 		clone.programCounter = this.programCounter;
 		clone.state = this.state;
 		clone.previousState = this.previousState;
+
+		clone.BYTES_PER_WORD = this.BYTES_PER_WORD;
+		clone.WORDS_IN_PROGRAM = this.WORDS_IN_PROGRAM;
 		
 		return clone;
 	}
