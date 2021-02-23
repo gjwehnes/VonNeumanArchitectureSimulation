@@ -84,7 +84,7 @@ public class Simulator {
 			
 			long valueOne = (long)(Math.random() * 256 * 256);
 			long valueTwo = (long)(Math.random() * valueOne);
-			long valueThree = (long)(Math.random() * 15) + 1;
+			long valueThree = (long)(Math.random() * 14) + 2;
 
 			memory[0] = createInstruction(READ, INPUT_ADDRESS);
 			if ((int)(Math.random() * 2) == 0) {
