@@ -228,7 +228,7 @@ public class Simulator {
 			case STOP:
 				return "STOP";
 			default:
-				return String.format("  %02X", instruction);
+				return String.format("%02X", instruction);
 		}
 	}
 	
