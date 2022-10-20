@@ -17,18 +17,6 @@ import javax.swing.UIManager;
 public class InstructionSetDialog extends JDialog {
 
 	JTextArea txtaInstructionSet = null;
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-			InstructionSetDialog dialog = new InstructionSetDialog();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Create the dialog.
@@ -36,17 +24,18 @@ public class InstructionSetDialog extends JDialog {
 	public InstructionSetDialog() {
 		
 		String content = "";
-		content +=   "Instruction	Value	    Description";
-		content += "\nREAD      10 xx xx xx	    Read value from address xx xx xx into accumulator";
-		content += "\nWRITE     11 xx xx xx	    Write value in accumulator to address xx xx xx";
-		content += "\nADD       20 xx xx xx	    Add value at address xx xx xx to accumulator";
-		content += "\nSUB       21 xx xx xx	    Subtract value at address xx xx xx to accumulator";
-		content += "\nMULT      22 xx xx xx	    Multiply accumulator value by value at address xx xx xx";
-		content += "\nDIV       23 xx xx xx	    Divide accumulator value by value at address xx xx xx.";
-		content += "\nSTOP      7F -- -- --	    Stop program execution immediately";
+		content +=   " Code Name Description";
+		content += "\n 10   READ  xx xx xx	    Read value from address xx xx xx into accumulator";
+		content += "\n 11   WRITE xx xx xx	    Write value in accumulator to address xx xx xx";
+		content += "\n 20   ADD   xx xx xx	    Add value at address xx xx xx to accumulator";
+		content += "\n 21   SUB   xx xx xx	    Subtract value at address xx xx xx from accumulator";
+		content += "\n 22   MULT  xx xx xx	    Multiply accumulator value by value at address xx xx xx";
+		content += "\n 23   DIV   xx xx xx	    Divide accumulator value by value at address xx xx xx.";
+		content += "\n 7F   STOP  -- -- --	    Stop program execution immediately";
 
 		setBounds(100, 100, 642, 300);
 		getContentPane().setLayout(null);
+		this.setTitle("Instruction Set");
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setBounds(0, 228, 584, 33);
