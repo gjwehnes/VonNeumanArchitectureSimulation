@@ -44,10 +44,11 @@ public class SimulatorFrame extends JFrame {
 
 	private final int MEMORY_GRID_TOP = 60;
 	private final int MEMORY_CELL_ROW_HEIGHT = 26;
-	private static ProgramMode PROGRAM_MODE = ProgramMode.TEMPERATURE_CONVERSION;
+	private static ProgramMode PROGRAM_MODE = ProgramMode.SIMPLE;
 	private static DisplayMode DISPLAY_MODE = DisplayMode.INSTRUCTIONS;
-	private static RunMode RUN_MODE = RunMode.DEMO_DESCRIPTIVE;
-	private static IOMode IO_MODE = IOMode.BASE_10;
+	private static RunMode RUN_MODE = RunMode.INTERACTIVE;
+	private static IOMode IO_MODE = IOMode.BASE_16;
+	private static boolean ALLOW_COMPLETION = false;
 	
 	private JPanel contentPane;
 	private boolean incorrectAnswer = false;
@@ -80,6 +81,7 @@ public class SimulatorFrame extends JFrame {
 	private JLabel lblBusses;
 	private JLabel lblArrow;
 	private JTextField[] memory;
+	private JLabel[] address;
 	JTextArea txtCurrentStepDescription;
 	private JLabel lblInput;
 	private JLabel lblOutput;
@@ -294,7 +296,7 @@ public class SimulatorFrame extends JFrame {
         lblCPU.setBounds(35, 11, 286, 391);
         contentPane.add(lblCPU);
                 
-        lblArrow = new JLabel(" --->");
+        lblArrow = new JLabel(" >>");
         lblArrow.setFont(new Font("Tahoma", Font.BOLD, 16));
         lblArrow.setIcon(new ImageIcon("res\\program counter.png"));        
         lblArrow.setBounds(390, 60, 48, 30);
@@ -304,15 +306,15 @@ public class SimulatorFrame extends JFrame {
         lblAddress.setBackground(Color.LIGHT_GRAY);
         lblAddress.setText("Address");
         lblAddress.setOpaque(true);
-        lblAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
+        lblAddress.setFont(new Font("Courier New", Font.BOLD + Font.ITALIC, 16));
         lblAddress.setBounds(452, MEMORY_GRID_TOP, 128, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblAddress);
         
         lblContent = new JLabel();
         lblContent.setBackground(Color.LIGHT_GRAY);
-        lblContent.setText("   +1 +2 +3");
+        lblContent.setText("    +1    +2    +3");
         lblContent.setOpaque(true);
-        lblContent.setFont(new Font("Courier New", Font.PLAIN, 16));
+        lblAddress.setFont(new Font("Courier New", Font.BOLD + Font.ITALIC, 16));
         lblContent.setBounds(592, MEMORY_GRID_TOP, 136, MEMORY_CELL_ROW_HEIGHT - 2);
         contentPane.add(lblContent);
         //        contentPane.add(lblBackground);
@@ -399,10 +401,12 @@ public class SimulatorFrame extends JFrame {
         btnInstructionSet.setBounds(440, 566, 125, 27);
         contentPane.add(btnInstructionSet);
         
-        JTextField txtInputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.INPUT_ADDRESS));
+        JLabel txtInputAddress = new JLabel(simulator.getMemoryAddressAsString(simulator.INPUT_ADDRESS));
         txtInputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
         txtInputAddress.setBounds(452, 436 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
-        txtInputAddress.setEditable(false);
+        txtInputAddress.setFont(new Font("Courier New", Font.ITALIC, 16));
+        txtInputAddress.setBackground(Color.LIGHT_GRAY);
+        txtInputAddress.setOpaque(true);
         contentPane.add(txtInputAddress);
 
         txtInput = new JTextField();
@@ -425,10 +429,11 @@ public class SimulatorFrame extends JFrame {
         lblInput.setBounds(440, 412, 298, 58);
         contentPane.add(lblInput);
                 
-        JTextField txtOutputAddress = new JTextField(simulator.getMemoryAddressAsString(simulator.OUTPUT_ADDRESS));
-        txtOutputAddress.setFont(new Font("Courier New", Font.PLAIN, 16));
+        JLabel txtOutputAddress = new JLabel(simulator.getMemoryAddressAsString(simulator.OUTPUT_ADDRESS));
         txtOutputAddress.setBounds(452, 504 , 128, MEMORY_CELL_ROW_HEIGHT - 2);
-        txtOutputAddress.setEditable(false);
+        txtOutputAddress.setFont(new Font("Courier New", Font.ITALIC, 16));
+        txtOutputAddress.setBackground(Color.LIGHT_GRAY);
+        txtOutputAddress.setOpaque(true);
         contentPane.add(txtOutputAddress);
 
         txtOutput = new JTextField();
@@ -466,14 +471,15 @@ public class SimulatorFrame extends JFrame {
 	private void initializeGrid() {
 
 		memory = new JTextField[simulator.WORDS_IN_PROGRAM];
-		JTextField[] address = new JTextField[simulator.WORDS_IN_PROGRAM];
+		address = new JLabel[simulator.WORDS_IN_PROGRAM];
 		
 		for (int row = 0; row < address.length; row++) {
-			address[row] = new JTextField();
-			address[row].setFont(new Font("Courier New", Font.PLAIN, 16));
+			address[row] = new JLabel();
+			address[row].setBackground(Color.LIGHT_GRAY);
+			address[row].setOpaque(true);
+			address[row].setFont(new Font("Courier New", Font.ITALIC, 16));			
 			address[row].setBounds(lblAddress.getX(), MEMORY_GRID_TOP + (row + 1) * MEMORY_CELL_ROW_HEIGHT, lblAddress.getWidth(), MEMORY_CELL_ROW_HEIGHT - 2);
 			address[row].setText(simulator.getMemoryAddressAsString(row*4));				
-			address[row].setEditable(false);
 	        contentPane.add(address[row]);
 	        contentPane.setComponentZOrder(address[row], 0);
 		}
@@ -552,7 +558,7 @@ public class SimulatorFrame extends JFrame {
 	}
 	
 	private boolean isEquivalent(String a, String b) {
-		return a.trim().equalsIgnoreCase(b.trim());
+		return a.replaceAll("\\s+","").equalsIgnoreCase(b.replaceAll("\\s+",""));
 	}
 	
 	private void setInputCorrect() {
@@ -574,7 +580,7 @@ public class SimulatorFrame extends JFrame {
 		
 		this.lblCorrect.setVisible(correctAnswer && simulator.getState() != State.START && RUN_MODE != RunMode.DEMO_SILENT);
 		this.lblIncorrect.setVisible(incorrectAnswer && RUN_MODE != RunMode.DEMO_SILENT);
-		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (RUN_MODE == RunMode.INTERACTIVE));
+		this.txtCompletionCode.setVisible(simulator.getState() == State.COMPLETE && (RUN_MODE == RunMode.INTERACTIVE) && ALLOW_COMPLETION);
 		
 		this.btnCheck.setEnabled(! correctAnswer && simulator.getState() != State.COMPLETE && simulator.getState() != State.START);
 		this.btnNext.setEnabled(correctAnswer && simulator.getState() != State.COMPLETE);
